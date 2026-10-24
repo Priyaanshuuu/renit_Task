@@ -37,6 +37,14 @@ Check the environment:
 & ./backend/.venv/Scripts/python.exe -c "import fastapi, uvicorn, pandas, httpx, pytest, sqlite3; from zoneinfo import ZoneInfo; print(ZoneInfo('Europe/London')); print('Backend dependencies ready')"
 ```
 
-This step only prepares the environment. The API, ingestion scripts, and tests will be added in the implementation steps in [the project plan](../docs/steps.md).
+## Run the API
 
-Before implementing them, read [the engineering conventions and official references](../docs/06-engineering-conventions.md). The current environment setup does not mean that Step 1 or any later implementation step is complete.
+From the repository root:
+
+```powershell
+& ./backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+```
+
+`GET http://127.0.0.1:8000/api/health` returns `{"status":"ok"}` for API process health only. It does not check data readiness. OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
+
+The backend currently has only the app entry point, health route, and response schema. Ingestion, SQLite storage, analysis endpoints, and their tests belong to later [project steps](../docs/steps.md). Read [the engineering conventions](../docs/06-engineering-conventions.md) before implementing them.

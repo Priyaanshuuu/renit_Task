@@ -12,11 +12,11 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 
 ## Current starting point
 
-- `frontend/` contains the existing React Router + TypeScript + Vite starter with server rendering enabled and a welcome screen.
-- `backend/` has a Python 3.11 virtual environment, pinned direct dependencies, and setup instructions. API and data-processing implementation has not started.
-- The documentation describes the intended app; the data pipeline, analysis, dashboard, and deployment still need to be built.
+- `frontend/` is configured in SPA mode, displays the agreed scope, and proxies local `/api` requests to FastAPI.
+- `backend/` has the Python environment, pinned direct dependencies, and a typed `/api/health` endpoint for process health only.
+- Step 1 is complete. The data pipeline, analysis, dashboard, and deployment still need to be built. Step 2 has not started.
 
-Reuse the frontend starter. Configure it as a client-rendered app so FastAPI can serve its compiled files. Avoid running a second production application server or replacing the starter without a concrete need.
+The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
 
 ## Working method and time budget
 
@@ -38,6 +38,8 @@ If time becomes tight, simplify styling and avoid additional filters or charts. 
 
 ## Step 1 - Lock the scope and scaffold
 
+**Status: complete (24 October 2026).** Startup commands and scope assumptions are in [the root README](../README.md). Only the health API and scope page are implemented; controls, data, and analysis remain in later steps.
+
 - Use decision dates 1-31 January 2026 and next-day delivery dates 2 January-1 February 2026. Show this convention in the app and README.
 - Use a configurable decision time, defaulting to 09:00 Europe/London. Label it as an illustrative assumption rather than a confirmed market deadline.
 - Label the datasets as Great Britain national wind generation. Do not describe national generation as the client's own supply or purchase requirement.
@@ -46,6 +48,8 @@ If time becomes tight, simplify styling and avoid additional filters or charts. 
 - Keep the UI to a decision date, cutoff time, two views, charts, summary values, and CSV download.
 
 **Done when:** both development servers start, the health endpoint responds, and the scope assumptions are written down.
+
+Verified locally: frontend type checking and production SPA build passed; Uvicorn and Vite started; direct and proxied health responses returned `200` with `{"status":"ok"}`; OpenAPI described the typed health response; unknown API paths returned JSON `404` directly and through Vite. Frontend HTML and the scope-page module were served successfully. No browser rendering, Elexon data, Docker, or deployed-app acceptance was checked in this step.
 
 ## Step 2 - Verify and prepare the historical data
 
