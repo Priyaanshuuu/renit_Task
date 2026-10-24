@@ -66,7 +66,7 @@ These endpoint names are defaults to settle before Step 4 and then use consisten
 
 | Endpoint | Inputs | Result |
 | --- | --- | --- |
-| `/api/health` | None | Small health/readiness result; checks required snapshot availability once the data step exists |
+| `/api/health` | None | API process health now; add snapshot readiness when the analysis API is implemented |
 | `/api/analysis` | `decision_date`, optional `cutoff_time` | Selected next-day intervals, coverage, metrics, and provenance |
 | `/api/monthly-summary` | Optional `cutoff_time` | Retrospective January summary, applying that cutoff separately to each decision date |
 | `/api/analysis.csv` | Same inputs as daily analysis | The same day's interval results as CSV |
@@ -114,6 +114,8 @@ Raise `HTTPException` at the HTTP boundary for expected API failures. Keep analy
 
 API-filter semantics, revision-history availability, source interval duration, source units, and conflicting duplicates still require real Elexon evidence in Step 2. This research does not establish those facts.
 
+Step 2 evidence is now recorded in [the snapshot reference](07-data-snapshot.md). Use it for confirmed native resolutions and the explicit hourly comparison assumption. Keep native half-hour actual coverage separate from hourly comparison coverage.
+
 ## 7. Resource ownership and execution
 
 **SQLite:** use standard-library `sqlite3` and parameterized SQL. Open the API snapshot with a read-only URI (`mode=ro`, `uri=True`) so a wrong path cannot create an empty database. Create, use, and close a connection inside the same synchronous storage call; do not share a connection between request threads. A connection's `with` block handles transactions but does not close it: use explicit `close()` or `contextlib.closing`. This also avoids relying on newer Python transaction APIs unavailable in 3.11. [Python 3.11 SQLite reference](https://docs.python.org/3.11/library/sqlite3.html).
@@ -143,7 +145,7 @@ API-filter semantics, revision-history availability, source interval duration, s
 - Prefer React Router's existing client data-loading features for route-owned requests. If a small component-level fetch is clearer, isolate it in a focused hook with cleanup that aborts or ignores obsolete requests. Do not introduce a state/query library just for these few controls.
 - Derive display values from current data rather than duplicating them in state. Keep decision inputs and the results they represent consistent, and prevent an older response from overwriting a newer selection. [React Effects guidance](https://react.dev/learn/you-might-not-need-an-effect).
 - Use semantic controls with labels and keyboard access. Handle loading, validation errors, unavailable data, partial coverage, and zero matched samples explicitly. Hide outcome-derived charts and metrics in Decision view until reveal.
-- The intended build uses React Router SPA mode and `build/client`. Even with `ssr: false`, the root is rendered at build time, so avoid browser-only APIs during initial rendering. Do not remove framework dependencies blindly. This mode change remains implementation work. [React Router SPA guidance](https://reactrouter.com/how-to/spa).
+- The build uses React Router SPA mode and `build/client`, configured in Step 1. Even with `ssr: false`, the root is rendered at build time, so avoid browser-only APIs during initial rendering. Do not remove framework dependencies blindly. [React Router SPA guidance](https://reactrouter.com/how-to/spa).
 
 ## 10. Focused verification
 

@@ -11,6 +11,8 @@
 | MAE, bias, and RMSE | Easy to calculate and explain. | They measure forecast error, not the client's financial loss. |
 | Only Elexon national wind data | Stays within the assignment. | Cannot represent the client's demand, contracts, or exact procurement needs. |
 | January-only evaluation | Keeps the work focused. | Cannot establish performance across seasons or extreme conditions. |
+| Hourly comparison using complete pairs of actual half-hours | Keeps native hourly forecast resolution without fabricating half-hour forecasts. | Loses half-hour detail and assumes a WINDFOR hour label represents the following hour; its response has no interval-end field. |
+| Bounded publication extraction windows | Keeps the snapshot small and reproducible. | Actual corrections published after the recorded window may be absent. |
 
 ## Risks worth explaining
 

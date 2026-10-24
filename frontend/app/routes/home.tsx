@@ -50,8 +50,9 @@ export default function Home() {
           Project status
         </h2>
         <p>
-          The application scaffold is in place. Historical data, forecast
-          selection, and the Decision and Accuracy views are not implemented yet.
+          The application scaffold and historical data snapshot are in place.
+          Forecast selection and the Decision and Accuracy views are not
+          implemented yet. This page does not display snapshot data.
         </p>
         <a
           href="/api/health"

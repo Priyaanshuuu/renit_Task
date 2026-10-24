@@ -14,7 +14,7 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 
 - `frontend/` is configured in SPA mode, displays the agreed scope, and proxies local `/api` requests to FastAPI.
 - `backend/` has the Python environment, pinned direct dependencies, and a typed `/api/health` endpoint for process health only.
-- Step 1 is complete. The data pipeline, analysis, dashboard, and deployment still need to be built. Step 2 has not started.
+- Steps 1 and 2 are complete. `data/` contains the native historical wind snapshot and provenance report; the downloader supports cached offline rebuilds. Analysis, dashboard integration, and deployment remain. Step 3 has not started.
 
 The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
 
@@ -53,6 +53,8 @@ Verified locally: frontend type checking and production SPA build passed; Uvicor
 
 ## Step 2 - Verify and prepare the historical data
 
+**Status: complete (24 October 2026).** See [the snapshot reference](07-data-snapshot.md) for source evidence, build commands, schema, coverage, and limitations. Native FUELHH half-hours and WINDFOR hourly revisions are preserved. The proposed comparison uses hourly forecasts against complete pairs of actual half-hours; treating a forecast label as the following hour is an explicit assumption.
+
 - Inspect real responses from the two allowed Elexon endpoints before writing the full downloader. Confirm response structure, date-filter meaning, retrieval limits, timestamps, units, interval lengths, and forecast publication history.
 - Download FUELHH actuals for the required delivery dates, keeping only `fuelType = WIND`. Download WINDFOR revisions covering those delivery dates and enough earlier publication history for the earliest supported cutoff. Do not assume publication and delivery filters mean the same thing.
 - Normalize timestamps to UTC; interpret user decisions in Europe/London. Retain delivery time, publication time for forecasts, and generation in MW.
@@ -63,13 +65,15 @@ Verified locally: frontend type checking and production SPA build passed; Uvicor
 
 **Done when:** the script produces a usable snapshot and a small report showing date coverage, missing records, duplicates, and interval handling. If publication history is unavailable or intervals cannot be aligned reliably, resolve or document that limitation before building the analysis around it.
 
+Verified: live extraction, offline rebuild, SQLite integrity/read-only access, matching embedded/sidecar provenance, and 23 focused tests. The snapshot has all 1,488 actual half-hours and 17,864 forecast revision rows covering 744 hours. All 31 decisions have 24/24 next-day forecast hours at 09:00; midnight has 22/24. Later actual corrections outside the fetched publication window are not guaranteed. Step 3 selection, hourly actual values, and metrics are not implemented.
+
 ## Step 3 - Implement forecast selection and calculations
 
 - Convert the selected decision date and cutoff into one timezone-aware timestamp, then identify the following delivery day.
 - For each delivery interval, select the forecast with the latest `publishTime` at or before the cutoff. Leave intervals without an eligible forecast missing.
 - Match selected forecasts to actual generation using the verified delivery-interval alignment rule.
 - Calculate `error = forecast - actual`, MAE, bias, and RMSE using matched pairs only. Return no metric value when there are no matched pairs.
-- Return expected, forecast-available, actual-available, and matched interval counts. Explain the basis of the expected count; January dates normally have 48 half-hour intervals if that is the verified comparison interval.
+- Return expected, forecast-available, actual-available, and matched interval counts. Use 24 hourly comparison periods per January delivery day under the documented convention, and report native actual coverage separately against 48 half-hours. Require both actual half-hours before calculating an hourly mean.
 - Identify the largest positive errors as overforecast periods. Keep monthly results explicitly retrospective: repeat each January decision using its own cutoff, then aggregate matched periods.
 - Add focused pytest cases for cutoff equality, rejection of later revisions, latest eligible revision selection, missing pairs, duplicate handling, next-day/month-boundary mapping, and hand-calculated metrics.
 

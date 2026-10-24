@@ -1,6 +1,6 @@
 # Approach and stack
 
-Status: this is the planned approach discussed before implementation. Update it to match the finished app before submission.
+Status: the scaffold and historical snapshot are implemented (Steps 1-2). Forecast selection, metrics, dashboard integration, and deployment remain planned. Update this document as those steps are completed.
 
 Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
 
@@ -22,6 +22,8 @@ Build one dashboard with two views:
 
 Do not assume API date filters refer to delivery time: verify their meaning with real responses. Fetch enough publication history to cover eligible forecasts. If interval lengths differ, verify and document how they are aligned before calculating errors.
 
+Step 2 verified publication-time filtering, half-hour FUELHH actual averages in MW, and hourly WINDFOR forecast labels. The snapshot preserves both native resolutions. The pilot will compare each hourly forecast with the mean of its two actual half-hours, requiring both; interpreting the forecast label as the following hour remains an explicit assumption. See [the source evidence and coverage report](07-data-snapshot.md).
+
 ## Stack and why
 
 | Tool | Why it fits |
@@ -40,7 +42,7 @@ Serve the compiled React files through FastAPI. Bundle the read-only data snapsh
 
 - Forecast and actual generation charts, with MW clearly labelled.
 - Forecast publication times in tooltips.
-- Coverage, such as 46 of 48 expected half-hour periods.
+- Hourly comparison coverage, such as 23 of 24 periods, alongside native actual coverage such as 46 of 48 half-hours.
 - MAE, bias, and RMSE, with short explanations.
 - Largest overforecast periods and a CSV download.
 - Actuals hidden in the decision view until the user reveals them.

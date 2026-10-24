@@ -47,4 +47,12 @@ From the repository root:
 
 `GET http://127.0.0.1:8000/api/health` returns `{"status":"ok"}` for API process health only. It does not check data readiness. OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
 
-The backend currently has only the app entry point, health route, and response schema. Ingestion, SQLite storage, analysis endpoints, and their tests belong to later [project steps](../docs/steps.md). Read [the engineering conventions](../docs/06-engineering-conventions.md) before implementing them.
+The API currently has only the health route and its response schema. Step 2 added explicit snapshot preparation outside API startup:
+
+```powershell
+& ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot
+& ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot --offline
+& ./backend/.venv/Scripts/python.exe -m pytest backend/tests -q
+```
+
+These commands run from the repository root. Offline rebuilds require the local response cache. See [the snapshot reference](../docs/07-data-snapshot.md) for source evidence, schema, coverage, and limitations. API storage reads, forecast selection, metrics, data readiness checks, and analysis endpoints remain in later [project steps](../docs/steps.md). Read [the engineering conventions](../docs/06-engineering-conventions.md) before implementing them.

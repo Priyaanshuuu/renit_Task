@@ -1,6 +1,6 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Step 1 provides a React frontend and FastAPI scaffold; data preparation and analysis are not implemented yet.
+A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-2 provide the React/FastAPI scaffold and validated historical SQLite snapshot. Forecast selection, metrics, and dashboard integration are not implemented yet.
 
 ## Scope
 
@@ -41,12 +41,27 @@ Stop each server with Ctrl+C.
 - `backend/requirements.txt`: pinned direct Python dependencies.
 - `frontend/`: React Router, TypeScript, Vite, and Tailwind frontend.
 - `docs/`: requirements, implementation steps, conventions, and deferred approaches.
-- `data/`: planned location for the SQLite snapshot and provenance; added during data preparation.
+- `data/`: bundled SQLite wind snapshot and coverage/provenance report; local raw response cache is ignored by Git.
+
+## Prepare the snapshot
+
+From the repository root:
+
+```powershell
+& ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot
+# Rebuild without downloads after the local response cache exists:
+& ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot --offline
+```
+
+The snapshot contains 1,488 actual half-hours and 17,864 hourly forecast revision records for the required delivery dates. Forecasts cover all 24 next-day hours at the default 09:00 cutoff; midnight has 22/24. The planned comparison uses the mean of both actual half-hours for each forecast hour, without gap filling. This assumes each forecast label represents the following hour. See [source evidence, extraction windows, commands, and limitations](docs/07-data-snapshot.md). Actual corrections published after the fetched window are not guaranteed to be included.
+
+Contains BMRS data © Elexon Limited copyright and database right 2026. Source: Elexon Insights Solution / National Energy System Operator.
 
 ## Checks and build
 
 ```powershell
 & ./backend/.venv/Scripts/python.exe -m pip check
+& ./backend/.venv/Scripts/python.exe -m pytest backend/tests -q
 cd frontend
 npm.cmd run typecheck
 npm.cmd run build
@@ -62,4 +77,4 @@ The scaffold follows the official [FastAPI first steps](https://fastapi.tiangolo
 
 ## Delivery status and AI assistance
 
-There is no deployed URL or demo video yet. AI assistance was used to review the project requirements, document conventions, set up dependencies, and implement the initial scaffold. This README will be updated as implementation and validation progress.
+There is no deployed URL or demo video yet. AI assistance was used to review requirements and official references, document conventions, set up dependencies, implement the scaffold and snapshot preparation, and write/run focused checks. This README will be updated as implementation and validation progress.

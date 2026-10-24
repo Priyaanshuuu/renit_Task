@@ -14,3 +14,7 @@ htmlcov/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Local download cache and interrupted snapshot candidates
+data/raw/
+data/*.tmp
