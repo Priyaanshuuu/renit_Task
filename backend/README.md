@@ -38,3 +38,5 @@ Check the environment:
 ```
 
 This step only prepares the environment. The API, ingestion scripts, and tests will be added in the implementation steps in [the project plan](../docs/steps.md).
+
+Before implementing them, read [the engineering conventions and official references](../docs/06-engineering-conventions.md). The current environment setup does not mean that Step 1 or any later implementation step is complete.

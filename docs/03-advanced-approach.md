@@ -34,6 +34,21 @@ Record source retrieval times, dataset versions, and the exact forecast selected
 
 Why: a reviewer can reproduce what the user saw and how the numbers were calculated.
 
+## 6. Additional engineering infrastructure
+
+Keep these as options rather than requirements for the pilot:
+
+| Option | Reconsider when |
+| --- | --- |
+| ORM and migration framework | The schema changes regularly or the app gains ongoing writes |
+| Background queue and workers | Requests need durable long-running jobs |
+| Shared cache | Measured latency or upstream traffic requires it |
+| Generated API clients and compatibility versioning | Independent consumers need a maintained public contract |
+| Central tracing and monitoring services | Operational failures cannot be diagnosed adequately with existing logs |
+| Additional service/repository layers | Concrete complexity or reuse makes the current modules hard to maintain |
+
+Readable naming, typed contracts, correct error handling, resource cleanup, and focused tests are part of the first version. See [the engineering conventions](06-engineering-conventions.md) for those defaults and the official sources behind them.
+
 ## Why defer these?
 
 The assignment is a one-month pilot with a 16-hour limit. Correct forecast selection, clear charts, and reliable metrics provide more value now than extra infrastructure.

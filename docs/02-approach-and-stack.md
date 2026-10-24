@@ -2,6 +2,8 @@
 
 Status: this is the planned approach discussed before implementation. Update it to match the finished app before submission.
 
+Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
+
 ## Simple approach
 
 Build one dashboard with two views:

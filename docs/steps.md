@@ -8,10 +8,12 @@ Keep the first version to React, FastAPI, pandas, a prepared SQLite snapshot, Re
 
 Advanced ideas stay documented in [the advanced approach](03-advanced-approach.md) and [future scope](05-future-scope.md). They are not prerequisites for completing this project. Record implementation limitations in [tradeoffs](04-tradeoffs.md).
 
+Before implementation, read [the engineering conventions](06-engineering-conventions.md) for naming, API contracts, validation, resource handling, and focused tests. These apply within the existing scope; they do not add implementation steps or authorize starting them. Wait for the user's instruction before starting the relevant step.
+
 ## Current starting point
 
-- `my-react-router-app/` contains a React Router + TypeScript + Vite starter with server rendering enabled and a welcome screen.
-- `backend/` has no implementation yet.
+- `frontend/` contains the existing React Router + TypeScript + Vite starter with server rendering enabled and a welcome screen.
+- `backend/` has a Python 3.11 virtual environment, pinned direct dependencies, and setup instructions. API and data-processing implementation has not started.
 - The documentation describes the intended app; the data pipeline, analysis, dashboard, and deployment still need to be built.
 
 Reuse the frontend starter. Configure it as a client-rendered app so FastAPI can serve its compiled files. Avoid running a second production application server or replacing the starter without a concrete need.
