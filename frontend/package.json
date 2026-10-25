@@ -2,13 +2,17 @@
   "name": "my-react-router-app",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
     "preview": "vite preview",
     "typecheck": "react-router typegen && tsc",
     "test:browser": "playwright test",
-    "format": "prettier --write app playwright.config.ts tests"
+    "test:deploy-config": "node --test tests/deployment-config.test.mjs",
+    "format": "prettier --write app playwright.config.ts vercel.mjs tests"
   },
   "dependencies": {
     "@react-router/node": "^8.5.0",

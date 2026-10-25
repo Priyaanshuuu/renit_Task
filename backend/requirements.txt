@@ -1,6 +1,5 @@
-fastapi==0.162.0
+-r ../requirements.txt
 uvicorn==0.54.0
 pandas==3.1.0
 httpx==0.28.1
-tzdata==2026.5
 pytest==9.1.1

@@ -1,6 +1,6 @@
 # Backend setup
 
-Use Python 3.11. The local virtual environment lives in `backend/.venv` and is excluded from Git.
+Use Python 3.12 for parity with Vercel. The existing Python 3.11 environment remains usable locally. The local virtual environment lives in `backend/.venv` and is excluded from Git.
 
 From the repository root in PowerShell:
 
@@ -9,7 +9,7 @@ python -m venv backend/.venv
 & ./backend/.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
 ```
 
-If `python` is unavailable, replace it in the first command with the full path to your Python 3.11 executable. The environment's Python can be called directly, so activation is optional and PowerShell execution-policy changes are unnecessary.
+If `python` is unavailable, replace it in the first command with the full path to your Python executable. The environment's Python can be called directly, so activation is optional and PowerShell execution-policy changes are unnecessary.
 
 To activate it in a shell that permits PowerShell scripts:
 
@@ -59,4 +59,10 @@ These commands run from the repository root. Offline rebuilds require the local 
 
 Step 3 added `storage.read_snapshot`, `analysis.analyze_day`, and `analysis.analyze_month`: read-only loading, decision-time forecast selection, hourly alignment, coverage, metrics, and top overforecasts. See [the analysis reference](../docs/08-analysis-calculations.md) for usage and validation. These functions do not make network requests or mutate the snapshot.
 
-Step 4 connects those functions to validated HTTP routes and adds safe data-readiness failures. Runtime reads use the bundled file or `WIND_SNAPSHOT_PATH`, without source downloads or shared database connections. Dashboard integration remains in Step 5. Follow [the project steps](../docs/steps.md) and [engineering conventions](../docs/06-engineering-conventions.md) when that step is authorized.
+Step 4 connects those functions to validated HTTP routes and adds safe data-readiness failures; Step 5 connects the dashboard. Runtime reads use the bundled file or `WIND_SNAPSHOT_PATH`, without source downloads or shared database connections.
+
+## Vercel
+
+Deploy from the **repository root**, not this directory, using the FastAPI preset. Root `app.py` exports the existing application; `.python-version` selects Python 3.12. Root `requirements.txt` installs API runtime dependencies only. This directory's requirements include those pins plus local development/download/test tools.
+
+The root includes `data/wind_snapshot.sqlite` at its existing file-relative path. Leave `WIND_SNAPSHOT_PATH` unset. No CORS settings are needed because the separately deployed frontend proxies `/api` requests. See [the deployment guide](../docs/11-vercel-deployment.md) for both projects, public readiness checks, and limits. Deployment has not been performed by the agent.

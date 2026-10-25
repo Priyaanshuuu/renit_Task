@@ -4,7 +4,7 @@
 
 Build a small dashboard that shows which national wind forecast was available at a buying decision and how it compared with actual generation. Follow [the problem statement](01-problem-statement.md) and [the planned approach](02-approach-and-stack.md).
 
-Keep the first version to React, FastAPI, pandas, a prepared SQLite snapshot, Recharts, and one Docker image. Build one dashboard with Decision and Accuracy views. No accounts, live ingestion, custom forecasting model, chatbot, background workers, or additional services.
+Keep the first version to React, FastAPI, pandas, a prepared SQLite snapshot, and Recharts. Build one dashboard with Decision and Accuracy views. The user selected two Vercel projects for hosting; the original brief's Docker deliverable is recorded separately in [the deployment guide](11-vercel-deployment.md). No accounts, live ingestion, custom forecasting model, chatbot, background workers, or additional services.
 
 Advanced ideas stay documented in [the advanced approach](03-advanced-approach.md) and [future scope](05-future-scope.md). They are not prerequisites for completing this project. Record implementation limitations in [tradeoffs](04-tradeoffs.md).
 
@@ -14,9 +14,9 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 
 - `frontend/` is configured in SPA mode, displays the connected Decision/Accuracy dashboard, and proxies local `/api` requests to FastAPI.
 - `backend/` exposes typed readiness, daily analysis, monthly summary, and CSV endpoints using the local snapshot.
-- Steps 1-5 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and supplies the dashboard's decision-time selections and daily/monthly metrics. Packaging and deployment remain. Step 6 has not started.
+- Steps 1-5 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and supplies the dashboard's decision-time selections and daily/monthly metrics. Step 6 Vercel compatibility and instructions are prepared; the user will perform deployment and hosted acceptance.
 
-The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
+The frontend produces `frontend/build/client/`. Vercel serves it separately from the FastAPI project and proxies `/api` to the configured backend origin. Local development continues to run Vite and FastAPI separately.
 
 ## Working method and time budget
 
@@ -29,7 +29,7 @@ Complete the steps in order. Each step should leave something small that can be 
 | 3. Implement selection and metrics | 2 hours | Tested analysis functions |
 | 4. Expose the API | 1 hour | Dashboard data and CSV endpoints |
 | 5. Build and connect the dashboard | 3 hours | Two working views using real data |
-| 6. Package and deploy | 2 hours | Working Docker image and public demo |
+| 6. Prepare and deploy on Vercel | 2 hours | Two deployable projects and public demo; deployment performed by the user |
 | 7. Finish documentation and submission | 2 hours | README, video, and checked links |
 | Buffer | 2 hours | Resolve data or deployment issues |
 | **Total** | **16 hours** | |
@@ -113,19 +113,23 @@ Verified: 97 tests passed; direct and Vite-proxied live HTTP checks passed for r
 
 Verified locally: frontend type checking and production SPA build passed, 97 Python tests passed, and six Chrome browser checks passed. Real-data checks exercised explicit outcome reveal, Accuracy view, publication tooltips/table, all 24 JSON/CSV numeric rows, default/midnight cutoff coverage, the January/February boundary, and desktop/390px/320px layouts. Intercepted scenarios checked obsolete requests, retry with independent monthly failure, an interior gap, zero values, and unavailable metrics. Desktop and narrow screenshots were inspected. Backend code and the snapshot are unchanged; Docker, public deployment, other browser engines, and a screen-reader audit remain unverified. Step 6 has not started.
 
-## Step 6 - Package, verify, and deploy
+## Step 6 - Prepare, verify, and deploy on Vercel
 
-- Create one multi-stage Docker build: compile the frontend, then package its static files, Python backend, and snapshot into one runtime image. Replace or adapt the starter Docker setup to this arrangement.
-- Serve the frontend and API from FastAPI under the same origin. Ensure static routing does not swallow API errors and the server uses the platform-provided port.
-- Run the focused Python tests, frontend type check, and frontend production build. Build and start the container, then verify the health endpoint, dashboard, analysis API, static assets, and CSV download.
-- Deploy the image to Heroku as planned in the stack document. Verify the current container deployment requirements when implementing this step and record the exact working commands. Keep the snapshot bundled; do not depend on persistent local writes.
-- Open the deployed app independently and exercise both views, cutoff changes, and export. Record any unverified behavior plainly.
+**Status: Vercel configuration and owner deployment guide prepared (25 October 2026). Hosted deployment and acceptance remain with the user.** This replaces the planned Heroku/single-image deployment at the user's request. See [the deployment guide](11-vercel-deployment.md).
 
-**Done when:** the public deployment serves real snapshot data and both workflows work from the Docker image. Local success alone does not complete this step.
+- Deploy the backend as a Vercel FastAPI project from the repository root. Export the existing app, use a supported Python version, install runtime dependencies only, and retain the bundled read-only snapshot.
+- Deploy the frontend from `frontend/` as a static Vite project using `build/client`. Set its backend Production origin and forward `/api` without changing the browser API contract or swallowing API failures.
+- Check Python compatibility, focused tests, frontend type/build checks, origin validation, and proxy configuration locally.
+- The user creates/deploys the projects and verifies readiness, daily/monthly API, JSON errors, static assets, bookmarked selections, dashboard workflows, and CSV from public Production URLs.
+- Keep deployment claims explicit: local configuration checks do not establish Vercel's function bundle or hosted behavior. The brief's separate Docker requirement remains unverified; the unused starter Dockerfile is not a Vercel deployment path.
+
+**Done when:** the user has deployed both projects and verified the public dashboard against the packaged snapshot. Configuration readiness alone does not complete hosted deployment.
+
+Verified locally: 97 backend tests passed on Python 3.12.14 and the existing Python 3.11 environment; the root deployment entrypoint passed API/snapshot/CSV/error smoke checks. Frontend type checking, production build, and two deployment configuration tests passed. The snapshot is unchanged. No Vercel project was created, linked, or deployed; hosted routing, bundling, and public acceptance remain pending with the user.
 
 ## Step 7 - Document, demonstrate, and submit
 
-- Write a root README covering the problem, folder layout, prerequisites, local startup, snapshot generation, tests, Docker commands, deployed URL, assumptions, data provenance, limitations, and AI assistance used.
+- Write a root README covering the problem, folder layout, prerequisites, local startup, snapshot generation, tests, Vercel deployment, Docker deliverable status, deployed URL, assumptions, data provenance, limitations, and AI assistance used.
 - Update the existing approach and tradeoff docs to match the completed implementation. Keep deferred features in the advanced and future-scope documents.
 - Publish the code in a public GitHub repository with an anonymous name. Check tracked files for credentials and personal details that do not belong in the submission.
 - Record an unlisted YouTube demo: up to 5 minutes for the client and up to 5 minutes for the technical reviewer, no more than 10 minutes total. Show the buying-decision workflow first, then explain selection, metrics, data limitations, and startup/deployment.
@@ -140,7 +144,7 @@ Verified locally: frontend type checking and production SPA build passed, 97 Pyt
 - [ ] Forecasts after each decision cutoff cannot enter the selected forecast curve.
 - [ ] Missing intervals remain visible and metrics show matched coverage.
 - [ ] Decision and Accuracy views work with the historical snapshot.
-- [ ] Focused tests, frontend checks, and Docker smoke checks pass.
+- [ ] Focused tests, frontend checks, and hosted Vercel acceptance pass; the original brief's Docker deliverable is resolved separately.
 - [ ] The public app, anonymous repository, README, and unlisted demo are accessible.
 - [ ] Submission links are checked and submitted; remaining limitations are documented.
 - [ ] Advanced features remain deferred rather than expanding the pilot.

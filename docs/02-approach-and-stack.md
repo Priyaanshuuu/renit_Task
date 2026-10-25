@@ -1,6 +1,6 @@
 # Approach and stack
 
-Status: the snapshot, calculations, analysis API, and connected dashboard are implemented (Steps 1-5). Packaging and deployment remain planned. See [the dashboard reference](10-dashboard.md) for current workflows and browser verification.
+Status: the snapshot, calculations, analysis API, and connected dashboard are implemented (Steps 1-5). Separate Vercel frontend/backend configurations are prepared; the user will deploy them. See [the dashboard reference](10-dashboard.md) and [deployment guide](11-vercel-deployment.md).
 
 Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
 
@@ -36,9 +36,9 @@ Step 3 implements that comparison and decision-time revision selection, with Pyt
 | pandas | Available for tabular inspection; the bounded snapshot and current analysis use standard-library functions. |
 | SQLite | Enough for a small historical dataset; no database server to manage. |
 | pytest | Test the forecast selection and calculations that matter most. |
-| Docker + Heroku | Package the frontend build and Python server as one deployable app. |
+| Vercel (two projects) | Serve the static frontend and Python API separately, with a frontend `/api` proxy. |
 
-Serve the compiled React files through FastAPI. Bundle the read-only data snapshot in the image. Do not rely on Heroku's local filesystem for persistent updates.
+Vercel serves the compiled React files from the frontend project. The backend project uses the repository root and bundles the read-only snapshot at its existing path. The frontend's build-time `BACKEND_ORIGIN` controls `/api` forwarding. Do not depend on persistent runtime writes. This replaces the original Heroku/single-image deployment plan at the user's request; the brief's Docker deliverable is recorded separately in the deployment guide.
 
 ## What the dashboard shows
 

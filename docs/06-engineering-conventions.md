@@ -10,7 +10,7 @@ Production-quality habits here mean readable names, clear contracts, correct cal
 
 The choices below are project defaults derived from the sources linked in each section. Framework documentation explains capabilities; it does not require this exact folder layout, endpoint naming, or business policy. Update a choice when implementation evidence justifies it, and record why.
 
-Keep Python 3.11 and the dependencies in `backend/requirements.txt`. Read documentation compatible with the installed versions; current documentation can describe newer features. Do not upgrade packages or add tools merely because a new example uses them.
+Use Python 3.12 for Vercel parity while retaining compatibility with the existing Python 3.11 local environment. Runtime dependency pins live in root `requirements.txt`; `backend/requirements.txt` includes them plus development/download/test tools. Read version-compatible documentation. Do not upgrade packages or add tools merely because a new example uses them.
 
 ## 2. Names and code style
 
@@ -134,8 +134,8 @@ Step 2 evidence is now recorded in [the snapshot reference](07-data-snapshot.md)
 - Use Python's standard logging with module loggers and appropriate levels. Log extraction summaries, unavailable data, and unexpected failures with useful context. Keep server access logs; do not add a monitoring stack for the pilot. [Python logging HOWTO](https://docs.python.org/3.11/howto/logging.html).
 - Keep secrets, environment files, local paths, full upstream payloads, and stack traces out of client-facing responses and unnecessary logs. The frontend should receive only public configuration.
 - Keep the prepared snapshot read-only at runtime. Do not add an ORM, migration framework, connection pool, Redis, or a scheduler for the current data flow.
-- Serve `/api` and the compiled frontend from one origin. Use the development proxy locally; introduce explicit CORS origins only if the deployment actually separates them.
-- Register API and static routes before any SPA fallback. Exclude `/api`, API documentation, and missing asset paths from fallback HTML. Verify correct content types, unknown API `404`s, and browser refresh behavior in the container.
+- Keep browser `/api` requests on the frontend origin. Use Vite's development proxy locally and the Vercel frontend rewrite in production. The separate backend project needs no CORS middleware for this proxy arrangement; see [the deployment guide](11-vercel-deployment.md).
+- Exclude `/api` and missing asset paths from SPA fallback HTML. Vercel serves the current single-page frontend as static files and forwards `/api` to FastAPI. Verify JSON errors, content types, and selection refresh through the deployed frontend; container/static serving through FastAPI is not the chosen deployment path.
 - Use the platform port, avoid development reload/debug mode in deployment, and keep dependency updates intentional. Direct dependency pins are already present; they are not a complete transitive lockfile. Save a resolved dependency snapshot during packaging if reproducible builds require it.
 
 ## 9. Frontend conventions

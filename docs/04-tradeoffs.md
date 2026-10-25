@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | Prepared historical snapshot | Fast, reproducible demo without an API request on every page load. | It does not automatically receive new data or later corrections. |
 | SQLite | Simple setup and easy packaging. | Less suitable for a growing service with concurrent writes. |
-| One app and one Docker image | Easier local startup and deployment. | Frontend and backend are released together. |
+| Two Vercel projects with a frontend API rewrite | Matches the chosen hosting and keeps browser requests on one origin. | Deploy backend first, configure its stable origin on the frontend, and verify both projects together; no public deployment has been checked yet. |
 | Configurable cutoff | Supports an explicit buying-time assumption. | The real business cutoff still needs client confirmation. |
 | Latest eligible forecast per delivery period | Uses the newest available information for each period. | A displayed curve may combine publication times; show them clearly. |
 | Exclude missing pairs from metrics | Avoids inventing values. | Results describe only available pairs, so coverage must be visible. |

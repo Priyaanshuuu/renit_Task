@@ -1,6 +1,6 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-5 provide the snapshot, calculations, API, and working dashboard. Packaging and deployment remain in Step 6.
+A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-5 provide the snapshot, calculations, API, and working dashboard. Separate frontend/backend Vercel deployment configurations are ready; public deployment is performed by the repository owner.
 
 ## Scope
 
@@ -13,7 +13,7 @@ A pilot for comparing Great Britain national wind forecasts available at a buyin
 
 ## Local startup
 
-Prerequisites: Python 3.11, Node.js 24, and npm. Commands below run from the repository root in PowerShell. The existing Python environment can be reused; otherwise follow [backend setup](backend/README.md).
+Prerequisites: Python 3.12 recommended for Vercel parity, Node.js 24, and npm. The existing Python 3.11 environment still supports local development. Commands below run from the repository root in PowerShell. The existing Python environment can be reused; otherwise follow [backend setup](backend/README.md).
 
 Start the backend in one terminal:
 
@@ -96,7 +96,18 @@ npm.cmd run test:browser
 
 Use `$env:PLAYWRIGHT_CHANNEL = "msedge"` for an installed Edge instead. Browser checks cover real snapshot workflows, CSV, and narrow layouts; delayed responses, API failures, and interior gaps use explicit test interception. Screenshots/traces are local ignored artifacts. See [frontend instructions](frontend/README.md).
 
-The frontend uses React Router SPA mode and produces `frontend/build/client/`. Serving that build through FastAPI, Docker packaging, and public deployment belong to Step 6. The starter frontend Dockerfile has not yet been adapted to this architecture.
+The frontend uses React Router SPA mode and produces `frontend/build/client/`. Vercel serves this static build separately from the FastAPI backend.
+
+## Deploy on Vercel
+
+Follow [the Vercel deployment guide](docs/11-vercel-deployment.md) for exact settings, checks, and troubleshooting. Import this repository as two projects:
+
+| Project | Root Directory | Framework | Required setting |
+| --- | --- | --- | --- |
+| Backend (deploy first) | `.` (repository root) | FastAPI | Python 3.12 selected by `.python-version`; no environment variables required |
+| Frontend | `frontend` | Vite | Set `BACKEND_ORIGIN` to the backend's stable HTTPS Production origin, without `/api` |
+
+The frontend config builds with `npm run build`, serves `build/client`, and proxies `/api` to the backend. The backend bundles the read-only snapshot. No CORS configuration, database hosting, or ingestion job is needed. After setting/changing `BACKEND_ORIGIN`, redeploy the frontend. Run `npm.cmd run test:deploy-config` from `frontend/` to check configuration locally. No projects were deployed by the agent; hosted verification remains yours to perform.
 
 ## Implementation references
 

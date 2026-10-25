@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "fastapi",
+  "functions": {
+    "app.py": {
+      "maxDuration": 30,
+      "excludeFiles": "{frontend/**,docs/**,backend/tests/**,backend/scripts/**,backend/.venv/**,data/raw/**,.pytest_cache/**,**/__pycache__/**}"
+    }
+  }
+}

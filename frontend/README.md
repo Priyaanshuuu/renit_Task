@@ -16,7 +16,13 @@ npm.cmd run typecheck
 npm.cmd run build
 ```
 
-The build output is `build/client/`. `npm.cmd run preview` previews the frontend build locally; it is not a production server. The starter Dockerfile still assumes a Node server build and will be replaced/adapted during Step 6, when FastAPI will serve the compiled frontend.
+The build output is `build/client/`. `npm.cmd run preview` previews the frontend build locally; it is not a production server. Vercel serves the static build using `vercel.mjs`; the old starter Dockerfile is not used.
+
+## Vercel
+
+Use Root Directory `frontend`, preset Vite, and Node 24.x. Set `BACKEND_ORIGIN` to the backend's stable HTTPS Production origin before deploying. Do not include `/api`. `vercel.mjs` sets `npm ci`, `npm run build`, `build/client`, and a same-origin `/api` proxy. No React Router server adapter or CORS change is needed for this SPA. Changing the variable requires redeployment. Local Vite still uses its existing localhost proxy.
+
+Run `npm.cmd run test:deploy-config` to check the origin validation and rewrite configuration. Full instructions, backend setup, access protection, and hosted checks are in [the deployment guide](../docs/11-vercel-deployment.md).
 
 The dashboard uses real `/api/analysis` and `/api/monthly-summary` responses. A route `clientLoader` owns the applied date/time URL, forwards its abort signal to requests, and keeps daily/monthly failures distinct. Decision view excludes outcomes from the chart, table, metrics, monthly summary, and export until explicit reveal. All business calculations stay in Python. See [dashboard behavior and references](../docs/10-dashboard.md).
 
