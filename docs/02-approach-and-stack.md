@@ -1,6 +1,6 @@
 # Approach and stack
 
-Status: the scaffold and historical snapshot are implemented (Steps 1-2). Forecast selection, metrics, dashboard integration, and deployment remain planned. Update this document as those steps are completed.
+Status: the scaffold, historical snapshot, forecast selection, and daily/monthly calculations are implemented (Steps 1-3). Analysis HTTP endpoints, dashboard integration, and deployment remain planned. Update this document as those steps are completed.
 
 Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
 
@@ -24,6 +24,8 @@ Do not assume API date filters refer to delivery time: verify their meaning with
 
 Step 2 verified publication-time filtering, half-hour FUELHH actual averages in MW, and hourly WINDFOR forecast labels. The snapshot preserves both native resolutions. The pilot will compare each hourly forecast with the mean of its two actual half-hours, requiring both; interpreting the forecast label as the following hour remains an explicit assumption. See [the source evidence and coverage report](07-data-snapshot.md).
 
+Step 3 implements that comparison and decision-time revision selection, with Python dataclasses for daily/monthly results. Monthly metrics pool matched hourly errors. See [the analysis reference and real-data trace](08-analysis-calculations.md). No analysis HTTP route has been added yet.
+
 ## Stack and why
 
 | Tool | Why it fits |
@@ -31,7 +33,7 @@ Step 2 verified publication-time filtering, half-hour FUELHH actual averages in 
 | React + TypeScript + Vite | A straightforward frontend with useful type checking. |
 | Recharts | Readable charts without building chart components from scratch. |
 | Python + FastAPI | Small API, input validation, and generated API documentation. |
-| pandas | Convenient timestamp filtering, matching, and metric calculations. |
+| pandas | Available for tabular inspection; the bounded snapshot and current analysis use standard-library functions. |
 | SQLite | Enough for a small historical dataset; no database server to manage. |
 | pytest | Test the forecast selection and calculations that matter most. |
 | Docker + Heroku | Package the frontend build and Python server as one deployable app. |

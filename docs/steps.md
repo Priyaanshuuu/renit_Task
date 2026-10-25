@@ -14,7 +14,7 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 
 - `frontend/` is configured in SPA mode, displays the agreed scope, and proxies local `/api` requests to FastAPI.
 - `backend/` has the Python environment, pinned direct dependencies, and a typed `/api/health` endpoint for process health only.
-- Steps 1 and 2 are complete. `data/` contains the native historical wind snapshot and provenance report; the downloader supports cached offline rebuilds. Analysis, dashboard integration, and deployment remain. Step 3 has not started.
+- Steps 1-3 are complete. `data/` contains the native wind snapshot and provenance; Python functions read it without writes and calculate decision-time selections and daily/monthly metrics. Analysis API endpoints, dashboard integration, and deployment remain. Step 4 has not started.
 
 The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
 
@@ -69,6 +69,8 @@ Verified: live extraction, offline rebuild, SQLite integrity/read-only access, m
 
 ## Step 3 - Implement forecast selection and calculations
 
+**Status: complete (24 October 2026).** See [the analysis reference](08-analysis-calculations.md) for functions, coverage definitions, a real source-to-error trace, results, and limitations. The calculation layer is independent of FastAPI and uses read-only snapshot loading.
+
 - Convert the selected decision date and cutoff into one timezone-aware timestamp, then identify the following delivery day.
 - For each delivery interval, select the forecast with the latest `publishTime` at or before the cutoff. Leave intervals without an eligible forecast missing.
 - Match selected forecasts to actual generation using the verified delivery-interval alignment rule.
@@ -78,6 +80,8 @@ Verified: live extraction, offline rebuild, SQLite integrity/read-only access, m
 - Add focused pytest cases for cutoff equality, rejection of later revisions, latest eligible revision selection, missing pairs, duplicate handling, next-day/month-boundary mapping, and hand-calculated metrics.
 
 **Done when:** the focused tests pass and one real decision day can be traced from source records to selected forecasts and calculated errors.
+
+Verified: 50 snapshot/analysis tests passed, including both real monthly cutoff runs. An independent SQL/Decimal check matched all 24 delivery hours and metrics for the 15 January decision, without changing the snapshot. Default 09:00 analysis has 744/744 matched monthly hours; midnight has 682/744. Selection, coverage, metrics, and top positive errors are implemented as Python results. HTTP analysis endpoints remain in Step 4.
 
 ## Step 4 - Expose a small API
 

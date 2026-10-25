@@ -1,6 +1,6 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-2 provide the React/FastAPI scaffold and validated historical SQLite snapshot. Forecast selection, metrics, and dashboard integration are not implemented yet.
+A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-3 provide the React/FastAPI scaffold, validated historical snapshot, and Python forecast selection and daily/monthly calculations. Analysis HTTP endpoints and dashboard integration are not implemented yet.
 
 ## Scope
 
@@ -37,7 +37,7 @@ Stop each server with Ctrl+C.
 
 ## Project layout
 
-- `backend/app/`: FastAPI entry point, routes, and response schemas.
+- `backend/app/`: FastAPI scaffold, snapshot validation, read-only storage, and pure analysis functions.
 - `backend/requirements.txt`: pinned direct Python dependencies.
 - `frontend/`: React Router, TypeScript, Vite, and Tailwind frontend.
 - `docs/`: requirements, implementation steps, conventions, and deferred approaches.
@@ -53,9 +53,19 @@ From the repository root:
 & ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot --offline
 ```
 
-The snapshot contains 1,488 actual half-hours and 17,864 hourly forecast revision records for the required delivery dates. Forecasts cover all 24 next-day hours at the default 09:00 cutoff; midnight has 22/24. The planned comparison uses the mean of both actual half-hours for each forecast hour, without gap filling. This assumes each forecast label represents the following hour. See [source evidence, extraction windows, commands, and limitations](docs/07-data-snapshot.md). Actual corrections published after the fetched window are not guaranteed to be included.
+The snapshot contains 1,488 actual half-hours and 17,864 hourly forecast revision records for the required delivery dates. Forecasts cover all 24 next-day hours at the default 09:00 cutoff; midnight has 22/24. The comparison uses the mean of both actual half-hours for each forecast hour, without gap filling. This assumes each forecast label represents the following hour. See [source evidence, extraction windows, commands, and limitations](docs/07-data-snapshot.md). Actual corrections published after the fetched window are not guaranteed to be included.
 
 Contains BMRS data © Elexon Limited copyright and database right 2026. Source: Elexon Insights Solution / National Energy System Operator.
+
+## Run the Python analysis
+
+From the repository root:
+
+```powershell
+& ./backend/.venv/Scripts/python.exe -c "from datetime import date; from backend.app.storage import read_snapshot; from backend.app.analysis import analyze_day; data=read_snapshot(); result=analyze_day(date(2026,1,15),data.actuals,data.forecasts); print(result.coverage); print(result.metrics)"
+```
+
+`analyze_day` selects only forecasts available at the chosen cutoff. `analyze_month` repeats each January decision separately and pools matched errors for retrospective metrics. Both preserve gaps, counts, and selected publication times. See [function behavior, validation, and the real-data trace](docs/08-analysis-calculations.md). They are not yet connected to the API or dashboard.
 
 ## Checks and build
 

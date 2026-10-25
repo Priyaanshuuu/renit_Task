@@ -51,8 +51,9 @@ export default function Home() {
         </h2>
         <p>
           The application scaffold and historical data snapshot are in place.
-          Forecast selection and the Decision and Accuracy views are not
-          implemented yet. This page does not display snapshot data.
+          Python forecast selection and calculations are implemented. The Decision
+          and Accuracy views are not connected yet. This page does not display
+          analysis data.
         </p>
         <a
           href="/api/health"

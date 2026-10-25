@@ -55,4 +55,8 @@ The API currently has only the health route and its response schema. Step 2 adde
 & ./backend/.venv/Scripts/python.exe -m pytest backend/tests -q
 ```
 
-These commands run from the repository root. Offline rebuilds require the local response cache. See [the snapshot reference](../docs/07-data-snapshot.md) for source evidence, schema, coverage, and limitations. API storage reads, forecast selection, metrics, data readiness checks, and analysis endpoints remain in later [project steps](../docs/steps.md). Read [the engineering conventions](../docs/06-engineering-conventions.md) before implementing them.
+These commands run from the repository root. Offline rebuilds require the local response cache. See [the snapshot reference](../docs/07-data-snapshot.md) for source evidence, schema, coverage, and limitations.
+
+Step 3 added `storage.read_snapshot`, `analysis.analyze_day`, and `analysis.analyze_month`: read-only loading, decision-time forecast selection, hourly alignment, coverage, metrics, and top overforecasts. See [the analysis reference](../docs/08-analysis-calculations.md) for usage and validation. These functions do not make network requests or mutate the snapshot.
+
+Analysis HTTP endpoints, data readiness checks, and connecting the functions to the API remain in Step 4. Follow [the project steps](../docs/steps.md) and [engineering conventions](../docs/06-engineering-conventions.md) when that step is authorized.
