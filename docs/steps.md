@@ -12,9 +12,9 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 
 ## Current starting point
 
-- `frontend/` is configured in SPA mode, displays the agreed scope, and proxies local `/api` requests to FastAPI.
+- `frontend/` is configured in SPA mode, displays the connected Decision/Accuracy dashboard, and proxies local `/api` requests to FastAPI.
 - `backend/` exposes typed readiness, daily analysis, monthly summary, and CSV endpoints using the local snapshot.
-- Steps 1-4 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and returns decision-time selections and daily/monthly metrics. Dashboard integration and deployment remain. Step 5 has not started.
+- Steps 1-5 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and supplies the dashboard's decision-time selections and daily/monthly metrics. Packaging and deployment remain. Step 6 has not started.
 
 The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
 
@@ -98,6 +98,8 @@ Verified: 97 tests passed; direct and Vite-proxied live HTTP checks passed for r
 
 ## Step 5 - Build the dashboard and connect real data
 
+**Status: complete (25 October 2026).** See [the dashboard reference](10-dashboard.md) for workflows, loading/cancellation, source details, browser checks, and current official references. All calculations remain in Python.
+
 - Replace the welcome screen with a single dashboard using the existing styling setup and Recharts.
 - Add the January decision-date picker and cutoff control. Display the resulting delivery date and timezone clearly.
 - In **Decision view**, show the selected forecast curve and its coverage. Hide actuals and outcome-derived metrics until the user explicitly reveals them or switches to Accuracy view.
@@ -108,6 +110,8 @@ Verified: 97 tests passed; direct and Vite-proxied live HTTP checks passed for r
 - Check a desktop and a narrow mobile screen. Keep labels readable and controls usable; avoid adding a component framework for this small page.
 
 **Done when:** both workflows use real API data, changing the cutoff changes forecast selection correctly, and the decision screen does not reveal outcomes prematurely.
+
+Verified locally: frontend type checking and production SPA build passed, 97 Python tests passed, and six Chrome browser checks passed. Real-data checks exercised explicit outcome reveal, Accuracy view, publication tooltips/table, all 24 JSON/CSV numeric rows, default/midnight cutoff coverage, the January/February boundary, and desktop/390px/320px layouts. Intercepted scenarios checked obsolete requests, retry with independent monthly failure, an interior gap, zero values, and unavailable metrics. Desktop and narrow screenshots were inspected. Backend code and the snapshot are unchanged; Docker, public deployment, other browser engines, and a screen-reader audit remain unverified. Step 6 has not started.
 
 ## Step 6 - Package, verify, and deploy
 

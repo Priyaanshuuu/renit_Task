@@ -1,14 +1,14 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-4 provide the scaffold, validated snapshot, calculations, and daily/monthly/CSV API. Dashboard integration and deployment are not implemented yet.
+A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-5 provide the snapshot, calculations, API, and working dashboard. Packaging and deployment remain in Step 6.
 
 ## Scope
 
 - Decision dates: 1-31 January 2026.
 - Next-day delivery dates: 2 January-1 February 2026, interpreting decisions as purchases for the following local calendar day.
-- Configurable API cutoff: 09:00 Europe/London by default. This is an illustrative assumption, not a confirmed market deadline. Dashboard controls remain in Step 5.
+- Configurable cutoff: 09:00 Europe/London by default. This is an illustrative assumption, not a confirmed market deadline.
 - Only Elexon FUELHH actuals with `fuelType = WIND` and WINDFOR forecasts, at Great Britain national level.
-- Planned workflows: Decision view and Accuracy view, with charts, coverage, error metrics, and CSV export.
+- Decision view and Accuracy view, with charts, coverage, error metrics, and CSV export.
 - National wind generation cannot establish the client's own supply or exact purchase requirement without demand and contract data.
 
 ## Local startup
@@ -29,7 +29,9 @@ npm.cmd ci
 npm.cmd run dev
 ```
 
-Open `http://localhost:5173`. Vite forwards `/api` requests to `http://127.0.0.1:8000`, with no browser CORS configuration needed. The frontend page documents the scope; it does not yet show analysis data.
+Open `http://localhost:5173`. Vite forwards `/api` requests to `http://127.0.0.1:8000`, with no browser CORS configuration needed.
+
+The dashboard starts at the 1 January decision and 09:00 cutoff. Choose a date/time and apply it; the resulting URL can be bookmarked. Decision view shows the eligible next-day forecast only. Select **Reveal outcomes** or **Accuracy view** to see actuals, metrics, overforecasts, the retrospective month at that cutoff, and CSV export (which includes outcomes). Applying another selection hides outcomes again. Expand hourly data for publication timestamps and gaps, or source details for extraction information and limitations. See [the dashboard reference](docs/10-dashboard.md).
 
 Interactive API documentation is at `http://127.0.0.1:8000/docs`. Implemented `GET` endpoints:
 
@@ -74,7 +76,7 @@ From the repository root:
 & ./backend/.venv/Scripts/python.exe -c "from datetime import date; from backend.app.storage import read_snapshot; from backend.app.analysis import analyze_day; data=read_snapshot(); result=analyze_day(date(2026,1,15),data.actuals,data.forecasts); print(result.coverage); print(result.metrics)"
 ```
 
-`analyze_day` selects only forecasts available at the chosen cutoff. `analyze_month` repeats each January decision separately and pools matched errors for retrospective metrics. Both preserve gaps, counts, and selected publication times. See [function behavior, validation, and the real-data trace](docs/08-analysis-calculations.md). The API exposes them; the dashboard is not connected yet.
+`analyze_day` selects only forecasts available at the chosen cutoff. `analyze_month` repeats each January decision separately and pools matched errors for retrospective metrics. Both preserve gaps, counts, and selected publication times. See [function behavior, validation, and the real-data trace](docs/08-analysis-calculations.md). The API exposes them to the dashboard; React only formats the results.
 
 ## Checks and build
 
@@ -86,6 +88,14 @@ npm.cmd run typecheck
 npm.cmd run build
 ```
 
+With both development servers running and Chrome installed, run the focused browser checks from `frontend/`:
+
+```powershell
+npm.cmd run test:browser
+```
+
+Use `$env:PLAYWRIGHT_CHANNEL = "msedge"` for an installed Edge instead. Browser checks cover real snapshot workflows, CSV, and narrow layouts; delayed responses, API failures, and interior gaps use explicit test interception. Screenshots/traces are local ignored artifacts. See [frontend instructions](frontend/README.md).
+
 The frontend uses React Router SPA mode and produces `frontend/build/client/`. Serving that build through FastAPI, Docker packaging, and public deployment belong to Step 6. The starter frontend Dockerfile has not yet been adapted to this architecture.
 
 ## Implementation references
@@ -96,4 +106,4 @@ The scaffold follows the official [FastAPI first steps](https://fastapi.tiangolo
 
 ## Delivery status and AI assistance
 
-There is no deployed URL or demo video yet. AI assistance was used to review requirements and official references, document conventions, set up dependencies, implement the scaffold and snapshot preparation, and write/run focused checks. This README will be updated as implementation and validation progress.
+There is no deployed URL or demo video yet. AI assistance was used to review requirements and official references, document conventions, implement the snapshot, analysis, API, and dashboard, and write/run focused checks. This README will be updated as implementation and validation progress.

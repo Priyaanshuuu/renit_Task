@@ -1,6 +1,6 @@
 # Approach and stack
 
-Status: the scaffold, snapshot, calculations, and analysis HTTP API are implemented (Steps 1-4). Dashboard integration and deployment remain planned. Update this document as those steps are completed.
+Status: the snapshot, calculations, analysis API, and connected dashboard are implemented (Steps 1-5). Packaging and deployment remain planned. See [the dashboard reference](10-dashboard.md) for current workflows and browser verification.
 
 Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
 

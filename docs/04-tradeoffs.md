@@ -13,6 +13,8 @@
 | January-only evaluation | Keeps the work focused. | Cannot establish performance across seasons or extreme conditions. |
 | Hourly comparison using complete pairs of actual half-hours | Keeps native hourly forecast resolution without fabricating half-hour forecasts. | Loses half-hour detail and assumes a WINDFOR hour label represents the following hour; its response has no interval-end field. |
 | Bounded publication extraction windows | Keeps the snapshot small and reproducible. | Actual corrections published after the recorded window may be absent. |
+| UI-only outcome reveal | Supports a decision-first retrospective workflow without extra endpoints or authentication. | Actuals are present in the API response and inspectable; this is not access control. CSV is offered only after reveal and explicitly includes outcomes. |
+| One route loader for daily and monthly requests | Keeps selection, cancellation, retry, and errors in one small flow. | Both requests run for each applied selection, and the page waits for both to settle. Monthly failure is shown separately after reveal. No caching is added for this bounded pilot. |
 
 ## Risks worth explaining
 
