@@ -119,7 +119,7 @@ Verified locally: frontend type checking and production SPA build passed, 97 Pyt
 
 - Deploy the backend as a Vercel FastAPI project from the repository root. Export the existing app, use a supported Python version, install runtime dependencies only, and retain the bundled read-only snapshot.
 - Deploy the frontend from `frontend/` as a static Vite project using `build/client`. Set its backend Production origin and forward `/api` without changing the browser API contract or swallowing API failures.
-- Check Python compatibility, focused tests, frontend type/build checks, origin validation, and proxy configuration locally.
+- Check Python compatibility, focused tests, frontend type/build checks, an explicit rewrite destination, and proxy configuration locally.
 - The user creates/deploys the projects and verifies readiness, daily/monthly API, JSON errors, static assets, bookmarked selections, dashboard workflows, and CSV from public Production URLs.
 - Keep deployment claims explicit: local configuration checks do not establish Vercel's function bundle or hosted behavior. The brief's separate Docker requirement remains unverified; the unused starter Dockerfile is not a Vercel deployment path.
 

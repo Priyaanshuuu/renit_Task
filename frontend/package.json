@@ -12,7 +12,7 @@
     "typecheck": "react-router typegen && tsc",
     "test:browser": "playwright test",
     "test:deploy-config": "node --test tests/deployment-config.test.mjs",
-    "format": "prettier --write app playwright.config.ts vercel.mjs tests"
+    "format": "prettier --write app playwright.config.ts vercel.json tests"
   },
   "dependencies": {
     "@react-router/node": "^8.5.0",

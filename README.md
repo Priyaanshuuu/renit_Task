@@ -105,9 +105,9 @@ Follow [the Vercel deployment guide](docs/11-vercel-deployment.md) for exact set
 | Project | Root Directory | Framework | Required setting |
 | --- | --- | --- | --- |
 | Backend (deploy first) | `.` (repository root) | FastAPI | Python 3.12 selected by `.python-version`; no environment variables required |
-| Frontend | `frontend` | Vite | Set `BACKEND_ORIGIN` to the backend's stable HTTPS Production origin, without `/api` |
+| Frontend | `frontend` | Vite | API destination is configured in `frontend/vercel.json`: `https://renittask.vercel.app` |
 
-The frontend config builds with `npm run build`, serves `build/client`, and proxies `/api` to the backend. The backend bundles the read-only snapshot. No CORS configuration, database hosting, or ingestion job is needed. After setting/changing `BACKEND_ORIGIN`, redeploy the frontend. Run `npm.cmd run test:deploy-config` from `frontend/` to check configuration locally. No projects were deployed by the agent; hosted verification remains yours to perform.
+The frontend config builds with `npm run build`, serves `build/client`, and proxies `/api` to the backend. The backend bundles the read-only snapshot. No CORS configuration, database hosting, ingestion job, or frontend environment variable is needed. If the backend domain changes, update the destination in `frontend/vercel.json` and redeploy the frontend. Run `npm.cmd run test:deploy-config` from `frontend/` to check configuration locally. The user deployed the backend; its public health endpoint returned `200` with snapshot readiness. No projects were deployed by the agent; frontend hosted verification remains pending.
 
 ## Implementation references
 

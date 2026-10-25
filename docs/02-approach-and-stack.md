@@ -38,7 +38,7 @@ Step 3 implements that comparison and decision-time revision selection, with Pyt
 | pytest | Test the forecast selection and calculations that matter most. |
 | Vercel (two projects) | Serve the static frontend and Python API separately, with a frontend `/api` proxy. |
 
-Vercel serves the compiled React files from the frontend project. The backend project uses the repository root and bundles the read-only snapshot at its existing path. The frontend's build-time `BACKEND_ORIGIN` controls `/api` forwarding. Do not depend on persistent runtime writes. This replaces the original Heroku/single-image deployment plan at the user's request; the brief's Docker deliverable is recorded separately in the deployment guide.
+Vercel serves the compiled React files from the frontend project. The backend project uses the repository root and bundles the read-only snapshot at its existing path. The frontend's static `vercel.json` forwards `/api` to `https://renittask.vercel.app/api`. Do not depend on persistent runtime writes. This replaces the original Heroku/single-image deployment plan at the user's request; the brief's Docker deliverable is recorded separately in the deployment guide.
 
 ## What the dashboard shows
 

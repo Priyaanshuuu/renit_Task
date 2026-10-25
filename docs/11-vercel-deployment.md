@@ -1,6 +1,6 @@
 # Deploy the frontend and backend on Vercel
 
-Prepared on 25 October 2026. Deploy two projects from the same repository, backend first. These instructions prepare deployment; no Vercel project or public deployment was created by the agent.
+Prepared on 25 October 2026. Deploy two projects from the same repository, backend first. The user has deployed the backend at `https://renittask.vercel.app`; its public `/api/health` endpoint returned `200` with `snapshot_ready: true`. No Vercel project or public deployment was created by the agent. Frontend deployment remains with the user.
 
 ## 1. Deploy the backend
 
@@ -40,11 +40,18 @@ Import the same repository again as a second Vercel project, such as `wind-analy
 | Install Command | `npm ci` |
 | Build Command | `npm run build` |
 | Output Directory | `build/client` |
-| Environment variable | `BACKEND_ORIGIN=https://your-backend-production-domain.vercel.app` |
+| Environment variables | None required |
 
-Set `BACKEND_ORIGIN` **before the first frontend deployment**, for Production and any Preview environments you plan to use. Use the origin only: HTTPS, hostname, optional trailing slash. Do not add `/api`, credentials, query parameters, or a fragment. It is a public backend address, not a secret. Use your actual backend domain rather than the example value.
+`frontend/vercel.json` contains the explicit rule:
 
-`frontend/vercel.mjs` sets these build options and creates an external rewrite from `/api/:path*` to the backend's `/api/:path*`. It is evaluated by Vercel at build time, so changing `BACKEND_ORIGIN` requires a frontend redeployment. The checked-in `.env.example` documents the variable; it does not configure the Vercel dashboard. No `VITE_` environment variable or frontend code edit is necessary.
+```json
+{
+  "source": "/api/:path*",
+  "destination": "https://renittask.vercel.app/api/:path*"
+}
+```
+
+The same file sets the build options above. The dynamic `vercel.mjs` configuration was replaced after the frontend deployment reported a missing rewrite destination. Keep only `vercel.json` in the frontend root. `BACKEND_ORIGIN` is no longer used; an existing dashboard value can be removed. If the backend moves, edit the destination URL in this file and redeploy. This static configuration avoids relying on JavaScript/environment evaluation for the destination; the precise cause of the earlier hosted compilation error was not reproduced locally.
 
 The browser continues requesting `/api` on the frontend origin, including CSV downloads. Vercel forwards those requests to the backend, so CORS middleware is unnecessary. The app currently has one page, `/`, with query-string selections; refreshing a bookmarked selection uses the static `index.html`. There is no blanket HTML fallback to swallow unknown API requests or missing assets. If nested client routes are added later, configure their fallback separately from `/api` and assets.
 
@@ -67,9 +74,9 @@ For this public demo, the backend Production URL must be reachable without a Ver
 | --- | --- |
 | Backend is detected as a frontend, or no FastAPI app found | Backend project Root Directory is `.` and preset is FastAPI; root `app.py` and `requirements.txt` are included |
 | Backend health returns `503` | Snapshot is tracked, included in the function, and `WIND_SNAPSHOT_PATH` is unset; inspect runtime logs |
-| Frontend config fails on `BACKEND_ORIGIN` | Set the variable in the selected deployment environment, with only the HTTPS origin, then redeploy |
+| Rewrite is missing `destination` | Deploy the latest commit containing `frontend/vercel.json` and the explicit backend URL; remove the obsolete `vercel.mjs` |
 | Dashboard or CSV gets login HTML/401 | Verify backend Production domain in incognito mode and check Deployment Protection |
-| API works directly but fails through frontend | Check frontend variable, redeploy after changes, and inspect proxy/backend logs |
+| API works directly but fails through frontend | Check the static destination URL, redeploy after changes, and inspect proxy/backend logs |
 | Frontend build cannot find output | Select Vite and `build/client`; do not use a Node server or `build/server` output |
 
 ## Local verification and boundaries
@@ -78,9 +85,9 @@ Verified on Windows: 97 backend tests passed on Python 3.12.14 in an isolated en
 
 Frontend type checking, production SPA build, and two deployment configuration tests passed. These configuration tests run locally and do not emulate Vercel's hosted proxy or bundler.
 
-Normal local development is unchanged: Uvicorn on port 8000 and Vite on 5173 with its existing proxy. `BACKEND_ORIGIN` is only read by the Vercel config; local Vite does not load it. See [the root README](../README.md) for commands.
+Normal local development is unchanged: Uvicorn on port 8000 and Vite on 5173 with its existing proxy. Local Vite does not use Vercel's production rewrite. See [the root README](../README.md) for commands.
 
-From `frontend/`, `npm.cmd run test:deploy-config` checks origin validation and the API rewrite configuration without a Vercel account. Frontend type checking/build and the focused Python tests check the app. Local validation does not establish Vercel's actual bundle construction, runtime filesystem, routing, Deployment Protection, or public accessibility; complete the hosted checks above after deploying.
+From `frontend/`, `npm.cmd run test:deploy-config` checks that the static configuration has the explicit HTTPS destination and no conflicting dynamic config. Frontend type checking/build and the focused Python tests check the app. The direct backend health check does not establish the frontend's hosted proxy or full deployed workflows; complete the hosted checks above after deploying.
 
 The original brief also lists Docker. Vercel deployments use these native configurations, not the unused starter `frontend/Dockerfile`; a working Docker deliverable remains separate if that requirement is retained. Heroku and the previously planned single-image deployment are superseded by this user-selected Vercel approach.
 
