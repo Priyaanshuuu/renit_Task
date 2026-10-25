@@ -60,13 +60,13 @@ The dependency direction is straightforward: routes call analysis and storage; a
 
 Use one `APIRouter` for the small API. `Depends` is useful for supplying a configured snapshot path and for test overrides; it is not a reason to introduce a dependency-injection framework. Do not add repositories, interfaces, service classes, or a separate folder for each abstraction by default. [FastAPI's router guidance](https://fastapi.tiangolo.com/tutorial/bigger-applications/) supports composing ordinary Python modules.
 
-## 4. Proposed HTTP contract
+## 4. HTTP contract
 
-These endpoint names are defaults to settle before Step 4 and then use consistently in the frontend, tests, and README. All are read-only `GET` requests; do not put a JSON body on a GET request.
+These endpoints are implemented in Step 4. Use them consistently in the frontend, tests, and README; [the API reference](09-api-reference.md) records the current payloads and behavior. All are read-only `GET` requests; do not put a JSON body on a GET request.
 
 | Endpoint | Inputs | Result |
 | --- | --- | --- |
-| `/api/health` | None | API process health now; add snapshot readiness when the analysis API is implemented |
+| `/api/health` | None | API response and readable snapshot/provenance readiness; observation coverage is reported separately |
 | `/api/analysis` | `decision_date`, optional `cutoff_time` | Selected next-day intervals, coverage, metrics, and provenance |
 | `/api/monthly-summary` | Optional `cutoff_time` | Retrospective January summary, applying that cutoff separately to each decision date |
 | `/api/analysis.csv` | Same inputs as daily analysis | The same day's interval results as CSV |

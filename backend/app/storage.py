@@ -1,6 +1,7 @@
 """Read the prepared snapshot without creating files or sharing connections."""
 
 import json
+import math
 import sqlite3
 from contextlib import closing
 from dataclasses import dataclass
@@ -41,9 +42,21 @@ def read_snapshot(path: Path = DEFAULT_SNAPSHOT_PATH) -> SnapshotData:
     if not isinstance(source, dict):
         raise ValueError("Snapshot source metadata must be an object")
     return SnapshotData(
-        actuals=[GenerationRecord(parse_timestamp(start), parse_timestamp(published), value)
-                 for start, published, value in actual_rows],
-        forecasts=[GenerationRecord(parse_timestamp(start), parse_timestamp(published), value)
-                   for start, published, value in forecast_rows],
+        actuals=_read_records(actual_rows, interval_minutes=30),
+        forecasts=_read_records(forecast_rows, interval_minutes=60),
         source=source,
     )
+
+
+def _read_records(
+    rows: list[tuple[str, str, float]], *, interval_minutes: int
+) -> list[GenerationRecord]:
+    records = []
+    for start, published, value in rows:
+        delivery = parse_timestamp(start)
+        if (delivery.minute % interval_minutes or delivery.second or delivery.microsecond):
+            raise ValueError("Snapshot delivery grid is invalid")
+        if not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError("Snapshot generation must be finite numeric MW")
+        records.append(GenerationRecord(delivery, parse_timestamp(published), value))
+    return records

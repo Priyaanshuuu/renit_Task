@@ -1,12 +1,12 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-3 provide the React/FastAPI scaffold, validated historical snapshot, and Python forecast selection and daily/monthly calculations. Analysis HTTP endpoints and dashboard integration are not implemented yet.
+A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-4 provide the scaffold, validated snapshot, calculations, and daily/monthly/CSV API. Dashboard integration and deployment are not implemented yet.
 
 ## Scope
 
 - Decision dates: 1-31 January 2026.
 - Next-day delivery dates: 2 January-1 February 2026, interpreting decisions as purchases for the following local calendar day.
-- Planned configurable cutoff: 09:00 Europe/London by default. This is an illustrative assumption, not a confirmed market deadline.
+- Configurable API cutoff: 09:00 Europe/London by default. This is an illustrative assumption, not a confirmed market deadline. Dashboard controls remain in Step 5.
 - Only Elexon FUELHH actuals with `fuelType = WIND` and WINDFOR forecasts, at Great Britain national level.
 - Planned workflows: Decision view and Accuracy view, with charts, coverage, error metrics, and CSV export.
 - National wind generation cannot establish the client's own supply or exact purchase requirement without demand and contract data.
@@ -31,7 +31,16 @@ npm.cmd run dev
 
 Open `http://localhost:5173`. Vite forwards `/api` requests to `http://127.0.0.1:8000`, with no browser CORS configuration needed. The frontend page documents the scope; it does not yet show analysis data.
 
-The only implemented API endpoint is `GET /api/health`, returning `{"status":"ok"}`. It checks API process health, not snapshot availability or analysis readiness. Interactive API documentation is at `http://127.0.0.1:8000/docs`.
+Interactive API documentation is at `http://127.0.0.1:8000/docs`. Implemented `GET` endpoints:
+
+| Path | Purpose |
+| --- | --- |
+| `/api/health` | API and snapshot readiness: `{"status":"ok","snapshot_ready":true}` |
+| `/api/analysis?decision_date=2026-01-15&cutoff_time=09:00` | Daily selected forecasts, actuals, coverage, metrics, and provenance |
+| `/api/monthly-summary?cutoff_time=09:00` | Retrospective January summary |
+| `/api/analysis.csv?decision_date=2026-01-15&cutoff_time=09:00` | The same daily interval results as a CSV attachment |
+
+Dates must be in January 2026 and use `YYYY-MM-DD`; cutoffs must use exact `HH:MM`. Invalid/unknown inputs return `422`, unavailable snapshot data returns `503`, and valid partial data returns explicit gaps/counts. The API never downloads data during requests. See [the API reference](docs/09-api-reference.md) for response groups, source windows, configuration, and CSV columns. Optional `WIND_SNAPSHOT_PATH` selects another local snapshot; relative paths resolve from the project root.
 
 Stop each server with Ctrl+C.
 
@@ -65,7 +74,7 @@ From the repository root:
 & ./backend/.venv/Scripts/python.exe -c "from datetime import date; from backend.app.storage import read_snapshot; from backend.app.analysis import analyze_day; data=read_snapshot(); result=analyze_day(date(2026,1,15),data.actuals,data.forecasts); print(result.coverage); print(result.metrics)"
 ```
 
-`analyze_day` selects only forecasts available at the chosen cutoff. `analyze_month` repeats each January decision separately and pools matched errors for retrospective metrics. Both preserve gaps, counts, and selected publication times. See [function behavior, validation, and the real-data trace](docs/08-analysis-calculations.md). They are not yet connected to the API or dashboard.
+`analyze_day` selects only forecasts available at the chosen cutoff. `analyze_month` repeats each January decision separately and pools matched errors for retrospective metrics. Both preserve gaps, counts, and selected publication times. See [function behavior, validation, and the real-data trace](docs/08-analysis-calculations.md). The API exposes them; the dashboard is not connected yet.
 
 ## Checks and build
 

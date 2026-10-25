@@ -51,7 +51,7 @@ export default function Home() {
         </h2>
         <p>
           The application scaffold and historical data snapshot are in place.
-          Python forecast selection and calculations are implemented. The Decision
+          The analysis API and Python calculations are implemented. The Decision
           and Accuracy views are not connected yet. This page does not display
           analysis data.
         </p>
@@ -59,7 +59,7 @@ export default function Home() {
           href="/api/health"
           className="inline-block underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-          Check API process health
+          Check API and snapshot readiness
         </a>
       </section>
     </main>

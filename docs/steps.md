@@ -13,8 +13,8 @@ Before implementation, read [the engineering conventions](06-engineering-convent
 ## Current starting point
 
 - `frontend/` is configured in SPA mode, displays the agreed scope, and proxies local `/api` requests to FastAPI.
-- `backend/` has the Python environment, pinned direct dependencies, and a typed `/api/health` endpoint for process health only.
-- Steps 1-3 are complete. `data/` contains the native wind snapshot and provenance; Python functions read it without writes and calculate decision-time selections and daily/monthly metrics. Analysis API endpoints, dashboard integration, and deployment remain. Step 4 has not started.
+- `backend/` exposes typed readiness, daily analysis, monthly summary, and CSV endpoints using the local snapshot.
+- Steps 1-4 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and returns decision-time selections and daily/monthly metrics. Dashboard integration and deployment remain. Step 5 has not started.
 
 The frontend reuses the existing starter and produces `frontend/build/client/`. Serving those files through FastAPI remains part of Step 6; local development currently runs Vite and FastAPI separately.
 
@@ -85,12 +85,16 @@ Verified: 50 snapshot/analysis tests passed, including both real monthly cutoff 
 
 ## Step 4 - Expose a small API
 
+**Status: complete (25 October 2026).** See [the API reference](09-api-reference.md) for routes, schemas, inputs, source details, CSV, configuration, and failure behavior. Analysis routes reuse Step 3 and never call Elexon. Health now checks snapshot readability and required provenance.
+
 - Add one analysis endpoint taking a January decision date and cutoff time. Return delivery intervals, forecast publication times, forecast/actual values, errors, metrics, coverage, and source metadata.
 - Add a monthly summary endpoint using the same selection functions and cutoff, plus a CSV download for the selected day's analysis. Keep the CSV consistent with the displayed results.
 - Validate inputs and clearly distinguish an invalid request, unavailable data, and a server failure.
 - Read the packaged snapshot locally; do not call Elexon on every dashboard request. Avoid extra repositories, service layers, or caching infrastructure unless an actual need appears.
 
 **Done when:** representative API requests return results consistent with Step 3, invalid inputs are rejected, and the exported CSV agrees with the response.
+
+Verified: 97 tests passed; direct and Vite-proxied live HTTP checks passed for readiness, daily JSON/CSV at two cutoffs, monthly summary, validation errors, and unknown API paths. JSON/CSV agree, real results match Step 3, and the snapshot checksum is unchanged. Invalid requests return `422`, snapshot failures `503`, and unexpected bugs `500`. Dashboard workflows, Docker, and deployment remain for later steps.
 
 ## Step 5 - Build the dashboard and connect real data
 

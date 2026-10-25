@@ -45,9 +45,9 @@ From the repository root:
 & ./backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
-`GET http://127.0.0.1:8000/api/health` returns `{"status":"ok"}` for API process health only. It does not check data readiness. OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
+`GET http://127.0.0.1:8000/api/health` returns `{"status":"ok","snapshot_ready":true}` when the snapshot and required provenance can be read; otherwise it returns `503`. This does not promise complete observation coverage. OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
 
-The API currently has only the health route and its response schema. Step 2 added explicit snapshot preparation outside API startup:
+The API provides daily analysis, compact retrospective monthly summaries, and CSV export alongside readiness. See [the API reference](../docs/09-api-reference.md) for inputs, outputs, configuration, and errors. Step 2 added explicit snapshot preparation outside API startup:
 
 ```powershell
 & ./backend/.venv/Scripts/python.exe -m backend.scripts.build_snapshot
@@ -59,4 +59,4 @@ These commands run from the repository root. Offline rebuilds require the local 
 
 Step 3 added `storage.read_snapshot`, `analysis.analyze_day`, and `analysis.analyze_month`: read-only loading, decision-time forecast selection, hourly alignment, coverage, metrics, and top overforecasts. See [the analysis reference](../docs/08-analysis-calculations.md) for usage and validation. These functions do not make network requests or mutate the snapshot.
 
-Analysis HTTP endpoints, data readiness checks, and connecting the functions to the API remain in Step 4. Follow [the project steps](../docs/steps.md) and [engineering conventions](../docs/06-engineering-conventions.md) when that step is authorized.
+Step 4 connects those functions to validated HTTP routes and adds safe data-readiness failures. Runtime reads use the bundled file or `WIND_SNAPSHOT_PATH`, without source downloads or shared database connections. Dashboard integration remains in Step 5. Follow [the project steps](../docs/steps.md) and [engineering conventions](../docs/06-engineering-conventions.md) when that step is authorized.
