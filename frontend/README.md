@@ -1,6 +1,6 @@
-﻿# Frontend
+# Frontend
 
-React Router + TypeScript + Vite, configured as a single-page app. Follow [the root README](../README.md) to run both the frontend and Python backend.
+I built the dashboard with React Router, TypeScript, Vite, and Recharts, configured as a single-page app. Follow [the root README](../README.md) to run both the frontend and Python backend.
 
 From this directory:
 
@@ -20,11 +20,11 @@ The build output is `build/client/`. `npm.cmd run preview` previews the frontend
 
 ## Vercel
 
-Use Root Directory `frontend`, preset Vite, and Node 24.x. `vercel.json` sets `npm ci`, `npm run build`, `build/client`, and a rewrite from `/api/:path*` to `https://renittask.vercel.app/api/:path*`. No environment variable, React Router server adapter, or CORS change is needed for this SPA. If the backend domain changes, update the destination and redeploy. Local Vite still uses its existing localhost proxy. The previous `vercel.mjs` and `BACKEND_ORIGIN` setup has been removed.
+Use Root Directory `frontend`, preset Vite, and Node 24.x. `vercel.json` sets `npm ci`, `npm run build`, `build/client`, and a rewrite from `/api/:path*` to `https://renittask.vercel.app/api/:path*`. No environment variable, React Router server adapter, or CORS change is needed for this SPA. If the backend domain changes, update the destination and redeploy. Local Vite still uses its existing localhost proxy. I replaced the previous dynamic configuration with this static rewrite after the deployment reported a missing destination.
 
 Run `npm.cmd run test:deploy-config` to check the explicit rewrite destination and absence of conflicting Vercel configs. Full instructions, backend setup, access protection, and hosted checks are in [the deployment guide](../docs/11-vercel-deployment.md).
 
-The dashboard uses real `/api/analysis` and `/api/monthly-summary` responses. A route `clientLoader` owns the applied date/time URL, forwards its abort signal to requests, and keeps daily/monthly failures distinct. Decision view excludes outcomes from the chart, table, metrics, monthly summary, and export until explicit reveal. All business calculations stay in Python. See [dashboard behavior and references](../docs/10-dashboard.md).
+I connect the dashboard to real `/api/analysis` and `/api/monthly-summary` responses. A route `clientLoader` owns the applied date/time URL, forwards its abort signal to requests, and keeps daily/monthly failures distinct. Decision view excludes outcomes from the chart, table, metrics, monthly summary, and export until explicit reveal. All business calculations stay in Python. See [dashboard behavior and references](../docs/10-dashboard.md).
 
 ## Browser checks
 
@@ -43,6 +43,6 @@ npm.cmd run test:browser
 
 On a machine without Chrome/Edge, install Playwright Chromium with `npx.cmd playwright install chromium` and set `$env:PLAYWRIGHT_CHANNEL = "chromium"`. Optional `APP_URL` changes the target origin; it must expose the same API. Tests require the bundled snapshot. The runner does not start or stop servers. After installing dependencies, restart Vite if it reports outdated optimized modules.
 
-The checks exercise decision/reveal/accuracy, publication tooltips, actual CSV downloads, cutoff and month boundaries, obsolete requests, unavailable data, null versus zero, and 1440/390/320px layouts. Failure/gap scenarios intercept responses explicitly; they do not change the snapshot. Screenshots and failure traces are in ignored `test-results/`.
+My browser checks exercise decision/reveal/accuracy, publication tooltips, actual CSV downloads, cutoff and month boundaries, obsolete requests, unavailable data, null versus zero, and 1440/390/320px layouts. Failure/gap scenarios intercept responses explicitly; they do not change the snapshot. Screenshots and failure traces are in ignored `test-results/`.
 
 `npm.cmd run format` formats the app and browser-check code with Prettier. The interface uses local/system font fallbacks, without an external font request.

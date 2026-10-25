@@ -1,6 +1,6 @@
 # Wind forecast analysis
 
-A pilot for comparing Great Britain national wind forecasts available at a buying decision with actual next-day generation. Steps 1-5 provide the snapshot, calculations, API, and working dashboard. Separate frontend/backend Vercel deployment configurations are ready; public deployment is performed by the repository owner.
+I built this pilot to compare the Great Britain national wind forecast available at a buying decision with actual next-day generation. It includes a prepared snapshot, Python analysis, an API, and a dashboard with Decision and Accuracy views. I deployed the frontend and backend as separate Vercel projects.
 
 ## Scope
 
@@ -13,7 +13,7 @@ A pilot for comparing Great Britain national wind forecasts available at a buyin
 
 ## Local startup
 
-Prerequisites: Python 3.12 recommended for Vercel parity, Node.js 24, and npm. The existing Python 3.11 environment still supports local development. Commands below run from the repository root in PowerShell. The existing Python environment can be reused; otherwise follow [backend setup](backend/README.md).
+I use Python 3.12 for Vercel parity, Node.js 24, and npm. The existing Python 3.11 environment still supports local development. Commands below run from the repository root in PowerShell. The existing Python environment can be reused; otherwise follow [backend setup](backend/README.md).
 
 Start the backend in one terminal:
 
@@ -49,7 +49,7 @@ Stop each server with Ctrl+C.
 ## Project layout
 
 - `backend/app/`: FastAPI scaffold, snapshot validation, read-only storage, and pure analysis functions.
-- `backend/requirements.txt`: pinned direct Python dependencies.
+- `requirements.txt`: API runtime dependency pins; `backend/requirements.txt` adds local development, download, and test tools.
 - `frontend/`: React Router, TypeScript, Vite, and Tailwind frontend.
 - `docs/`: requirements, implementation steps, conventions, and deferred approaches.
 - `data/`: bundled SQLite wind snapshot and coverage/provenance report; local raw response cache is ignored by Git.
@@ -107,14 +107,16 @@ Follow [the Vercel deployment guide](docs/11-vercel-deployment.md) for exact set
 | Backend (deploy first) | `.` (repository root) | FastAPI | Python 3.12 selected by `.python-version`; no environment variables required |
 | Frontend | `frontend` | Vite | API destination is configured in `frontend/vercel.json`: `https://renittask.vercel.app` |
 
-The frontend config builds with `npm run build`, serves `build/client`, and proxies `/api` to the backend. The backend bundles the read-only snapshot. No CORS configuration, database hosting, ingestion job, or frontend environment variable is needed. If the backend domain changes, update the destination in `frontend/vercel.json` and redeploy the frontend. Run `npm.cmd run test:deploy-config` from `frontend/` to check configuration locally. The user deployed the backend; its public health endpoint returned `200` with snapshot readiness. No projects were deployed by the agent; frontend hosted verification remains pending.
+The frontend config builds with `npm run build`, serves `build/client`, and proxies `/api` to the backend. The backend bundles the read-only snapshot. No CORS configuration, database hosting, ingestion job, or frontend environment variable is needed. If the backend domain changes, update the destination in `frontend/vercel.json` and redeploy the frontend. Run `npm.cmd run test:deploy-config` from `frontend/` to check configuration locally. My backend is available at [renittask.vercel.app](https://renittask.vercel.app/api/health), where the health check returned `200` with snapshot readiness. The dashboard is working with the static frontend rewrite; the local test evidence and hosted-check procedure are documented separately.
 
 ## Implementation references
 
-Read [the project steps](docs/steps.md) and [engineering conventions](docs/06-engineering-conventions.md) before making changes. Each next step requires the user's instruction.
+I recorded the implementation progress in [the project steps](docs/steps.md) and my naming, API, error-handling, and testing choices in [the engineering conventions](docs/06-engineering-conventions.md).
 
-The scaffold follows the official [FastAPI first steps](https://fastapi.tiangolo.com/tutorial/first-steps/), [React Router SPA mode](https://reactrouter.com/how-to/spa), and [Vite development proxy](https://vite.dev/config/server-options.html#server-proxy) guidance.
+I used the official [FastAPI first steps](https://fastapi.tiangolo.com/tutorial/first-steps/), [React Router SPA mode](https://reactrouter.com/how-to/spa), and [Vite development proxy](https://vite.dev/config/server-options.html#server-proxy) guidance as implementation references.
 
 ## Delivery status and AI assistance
 
-There is no deployed URL or demo video yet. AI assistance was used to review requirements and official references, document conventions, implement the snapshot, analysis, API, and dashboard, and write/run focused checks. This README will be updated as implementation and validation progress.
+I used AI assistance to review requirements and official references, document engineering choices, implement the snapshot, analysis, API, and dashboard, and write and run focused checks. The source evidence, tests, and limitations are included in this repository.
+
+I have deployed the application on Vercel. I have not added the frontend demo URL, an unlisted video link, or submission confirmation to this README. The original brief also lists Docker; the starter frontend Dockerfile is unused by Vercel and has not been validated as a working project image.

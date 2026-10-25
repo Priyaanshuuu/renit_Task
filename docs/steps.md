@@ -1,150 +1,79 @@
-# Project completion steps
+# Project steps and progress
 
-## Goal and boundaries
+I built this pilot in small stages so I could check the data and calculations before connecting the dashboard. My goal was one focused portal for reviewing the forecast available at a buying decision and its next-day outcome.
 
-Build a small dashboard that shows which national wind forecast was available at a buying decision and how it compared with actual generation. Follow [the problem statement](01-problem-statement.md) and [the planned approach](02-approach-and-stack.md).
+The implementation uses React, FastAPI, a prepared SQLite snapshot, and Recharts. I kept live ingestion, accounts, custom prediction models, and additional services outside the pilot. My implementation choices are in [the approach](02-approach-and-stack.md), [engineering conventions](06-engineering-conventions.md), and [tradeoffs](04-tradeoffs.md).
 
-Keep the first version to React, FastAPI, pandas, a prepared SQLite snapshot, and Recharts. Build one dashboard with Decision and Accuracy views. The user selected two Vercel projects for hosting; the original brief's Docker deliverable is recorded separately in [the deployment guide](11-vercel-deployment.md). No accounts, live ingestion, custom forecasting model, chatbot, background workers, or additional services.
+## Original time budget
 
-Advanced ideas stay documented in [the advanced approach](03-advanced-approach.md) and [future scope](05-future-scope.md). They are not prerequisites for completing this project. Record implementation limitations in [tradeoffs](04-tradeoffs.md).
+I used the brief's 16-hour limit to guide the scope. These are planning estimates, not a measured timesheet.
 
-Before implementation, read [the engineering conventions](06-engineering-conventions.md) for naming, API contracts, validation, resource handling, and focused tests. These apply within the existing scope; they do not add implementation steps or authorize starting them. Wait for the user's instruction before starting the relevant step.
-
-## Current starting point
-
-- `frontend/` is configured in SPA mode, displays the connected Decision/Accuracy dashboard, and proxies local `/api` requests to FastAPI.
-- `backend/` exposes typed readiness, daily analysis, monthly summary, and CSV endpoints using the local snapshot.
-- Steps 1-5 are complete. `data/` contains the native wind snapshot and provenance; the API reads it without writes and supplies the dashboard's decision-time selections and daily/monthly metrics. Step 6 Vercel compatibility and instructions are prepared; the user will perform deployment and hosted acceptance.
-
-The frontend produces `frontend/build/client/`. Vercel serves it separately from the FastAPI project and proxies `/api` to the configured backend origin. Local development continues to run Vite and FastAPI separately.
-
-## Working method and time budget
-
-Complete the steps in order. Each step should leave something small that can be checked before moving on. Keep calculations in Python and presentation in React.
-
-| Step | Budget | Result |
+| Stage | Budget | Result |
 | --- | --- | --- |
-| 1. Lock the scope and scaffold | 1 hour | Frontend and backend start locally |
-| 2. Verify and prepare source data | 3 hours | Reproducible SQLite snapshot and coverage report |
-| 3. Implement selection and metrics | 2 hours | Tested analysis functions |
-| 4. Expose the API | 1 hour | Dashboard data and CSV endpoints |
-| 5. Build and connect the dashboard | 3 hours | Two working views using real data |
-| 6. Prepare and deploy on Vercel | 2 hours | Two deployable projects and public demo; deployment performed by the user |
-| 7. Finish documentation and submission | 2 hours | README, video, and checked links |
-| Buffer | 2 hours | Resolve data or deployment issues |
+| 1. Scope and scaffold | 1 hour | Local frontend and backend |
+| 2. Source verification and snapshot | 3 hours | Reproducible historical data and provenance |
+| 3. Selection and calculations | 2 hours | Tested daily and monthly analysis |
+| 4. API | 1 hour | JSON, readiness, and CSV endpoints |
+| 5. Dashboard | 3 hours | Decision and Accuracy workflows |
+| 6. Deployment | 2 hours | Separate Vercel frontend and backend projects |
+| 7. Documentation and submission | 2 hours | Project references and submission artifacts |
+| Buffer | 2 hours | Data or deployment issues |
 | **Total** | **16 hours** | |
 
-If time becomes tight, simplify styling and avoid additional filters or charts. Preserve forecast correctness, visible missing data, required deliverables, and validation.
+## 1. Scope and scaffold
 
-## Step 1 - Lock the scope and scaffold
+I fixed the decision range to 1-31 January 2026, with next-day delivery from 2 January to 1 February. I made the cutoff configurable, with an illustrative 09:00 Europe/London default.
 
-**Status: complete (24 October 2026).** Startup commands and scope assumptions are in [the root README](../README.md). Only the health API and scope page are implemented; controls, data, and analysis remain in later steps.
+I reused the frontend starter in SPA mode, added FastAPI, and configured Vite to proxy local `/api` requests. I kept the scope to Great Britain national wind, which cannot establish a customer's own generation or purchase requirement without their demand and contract data.
 
-- Use decision dates 1-31 January 2026 and next-day delivery dates 2 January-1 February 2026. Show this convention in the app and README.
-- Use a configurable decision time, defaulting to 09:00 Europe/London. Label it as an illustrative assumption rather than a confirmed market deadline.
-- Label the datasets as Great Britain national wind generation. Do not describe national generation as the client's own supply or purchase requirement.
-- Keep the existing frontend folder. Add a small FastAPI backend, Python dependencies, and a health endpoint. Configure the frontend for client rendering and local API access through the development proxy.
-- Use a simple layout: `backend/` for ingestion, analysis, API, and focused tests; `data/` for the prepared snapshot and extraction metadata; the existing frontend folder for the dashboard.
-- Keep the UI to a decision date, cutoff time, two views, charts, summary values, and CSV download.
+The initial type check, production build, server startup, direct/proxied health responses, and API `404` checks passed. Later stages added snapshot readiness and analysis.
 
-**Done when:** both development servers start, the health endpoint responds, and the scope assumptions are written down.
+## 2. Source verification and snapshot
 
-Verified locally: frontend type checking and production SPA build passed; Uvicorn and Vite started; direct and proxied health responses returned `200` with `{"status":"ok"}`; OpenAPI described the typed health response; unknown API paths returned JSON `404` directly and through Vite. Frontend HTML and the scope-page module were served successfully. No browser rendering, Elexon data, Docker, or deployed-app acceptance was checked in this step.
+I checked actual Elexon responses before implementing the downloader. Publication filters and delivery dates are handled separately, and forecast revisions are preserved.
 
-## Step 2 - Verify and prepare the historical data
+The prepared snapshot contains 1,488 native actual half-hours and 17,864 forecast revision rows across 744 delivery hours. I recorded extraction windows, source attribution, duplicate handling, and coverage in the embedded and sidecar reports.
 
-**Status: complete (24 October 2026).** See [the snapshot reference](07-data-snapshot.md) for source evidence, build commands, schema, coverage, and limitations. Native FUELHH half-hours and WINDFOR hourly revisions are preserved. The proposed comparison uses hourly forecasts against complete pairs of actual half-hours; treating a forecast label as the following hour is an explicit assumption.
+The extraction, offline rebuild, SQLite integrity/read-only checks, and 23 snapshot tests passed at this stage. See [the snapshot reference](07-data-snapshot.md).
 
-- Inspect real responses from the two allowed Elexon endpoints before writing the full downloader. Confirm response structure, date-filter meaning, retrieval limits, timestamps, units, interval lengths, and forecast publication history.
-- Download FUELHH actuals for the required delivery dates, keeping only `fuelType = WIND`. Download WINDFOR revisions covering those delivery dates and enough earlier publication history for the earliest supported cutoff. Do not assume publication and delivery filters mean the same thing.
-- Normalize timestamps to UTC; interpret user decisions in Europe/London. Retain delivery time, publication time for forecasts, and generation in MW.
-- Check duplicates, invalid values, missing periods, and source interval differences. Collapse identical duplicates; flag conflicting duplicates for inspection and document their resolution rather than choosing an arbitrary row.
-- Verify the interval alignment rule before comparing the sources. If resampling is necessary, use the confirmed interval durations and preserve gaps. Do not fill missing generation with zero.
-- Write a repeatable script that builds one read-only SQLite snapshot. Preserve forecast revisions so changing the cutoff does not require another download.
-- Save source URLs, extraction time, requested ranges, observed coverage, and any alignment or duplicate rules alongside the snapshot. A short metadata file is enough.
+## 3. Forecast selection and calculations
 
-**Done when:** the script produces a usable snapshot and a small report showing date coverage, missing records, duplicates, and interval handling. If publication history is unavailable or intervals cannot be aligned reliably, resolve or document that limitation before building the analysis around it.
+I implemented decision windows, latest eligible forecast selection, complete-pair hourly actuals, matched coverage, MAE, bias, RMSE, and largest positive errors in Python.
 
-Verified: live extraction, offline rebuild, SQLite integrity/read-only access, matching embedded/sidecar provenance, and 23 focused tests. The snapshot has all 1,488 actual half-hours and 17,864 forecast revision rows covering 744 hours. All 31 decisions have 24/24 next-day forecast hours at 09:00; midnight has 22/24. Later actual corrections outside the fetched publication window are not guaranteed. Step 3 selection, hourly actual values, and metrics are not implemented.
+Forecast eligibility is checked before revision selection. Missing values remain missing. Monthly results repeat each day's cutoff and pool the matched hourly errors.
 
-## Step 3 - Implement forecast selection and calculations
+The snapshot and analysis suite reached 50 passing tests. An independent SQL/Decimal trace matched all 24 hours and daily metrics for the 15 January decision. Monthly matched coverage is 744/744 at 09:00 and 682/744 at midnight. See [the calculation reference](08-analysis-calculations.md).
 
-**Status: complete (24 October 2026).** See [the analysis reference](08-analysis-calculations.md) for functions, coverage definitions, a real source-to-error trace, results, and limitations. The calculation layer is independent of FastAPI and uses read-only snapshot loading.
+## 4. API
 
-- Convert the selected decision date and cutoff into one timezone-aware timestamp, then identify the following delivery day.
-- For each delivery interval, select the forecast with the latest `publishTime` at or before the cutoff. Leave intervals without an eligible forecast missing.
-- Match selected forecasts to actual generation using the verified delivery-interval alignment rule.
-- Calculate `error = forecast - actual`, MAE, bias, and RMSE using matched pairs only. Return no metric value when there are no matched pairs.
-- Return expected, forecast-available, actual-available, and matched interval counts. Use 24 hourly comparison periods per January delivery day under the documented convention, and report native actual coverage separately against 48 half-hours. Require both actual half-hours before calculating an hourly mean.
-- Identify the largest positive errors as overforecast periods. Keep monthly results explicitly retrospective: repeat each January decision using its own cutoff, then aggregate matched periods.
-- Add focused pytest cases for cutoff equality, rejection of later revisions, latest eligible revision selection, missing pairs, duplicate handling, next-day/month-boundary mapping, and hand-calculated metrics.
+I exposed the calculations through typed daily JSON, monthly summary, CSV, and readiness endpoints. Requests read the local snapshot without downloading upstream data or writing to the database.
 
-**Done when:** the focused tests pass and one real decision day can be traced from source records to selected forecasts and calculated errors.
+Input validation, null handling, source provenance, JSON/CSV agreement, and expected failure responses are covered by the 97-test Python suite. Direct and Vite-proxied HTTP checks also passed. See [the API reference](09-api-reference.md).
 
-Verified: 50 snapshot/analysis tests passed, including both real monthly cutoff runs. An independent SQL/Decimal check matched all 24 delivery hours and metrics for the 15 January decision, without changing the snapshot. Default 09:00 analysis has 744/744 matched monthly hours; midnight has 682/744. Selection, coverage, metrics, and top positive errors are implemented as Python results. HTTP analysis endpoints remain in Step 4.
+## 5. Dashboard
 
-## Step 4 - Expose a small API
+I connected the Decision and Accuracy views to the API. Decision view hides outcomes until reveal; changing a selection hides them again. The dashboard includes publication timestamps, visible gaps, matched coverage, daily metrics, overforecasts, a retrospective monthly summary, CSV, and source details.
 
-**Status: complete (25 October 2026).** See [the API reference](09-api-reference.md) for routes, schemas, inputs, source details, CSV, configuration, and failure behavior. Analysis routes reuse Step 3 and never call Elexon. Health now checks snapshot readability and required provenance.
+Type checking, the production SPA build, and six Chrome browser checks passed. The browser checks cover real snapshot workflows, desktop/390px/320px layouts, and controlled failures, delays, and interior gaps. I keep those intercepted scenarios separate from evidence about the real snapshot. See [the dashboard reference](10-dashboard.md).
 
-- Add one analysis endpoint taking a January decision date and cutoff time. Return delivery intervals, forecast publication times, forecast/actual values, errors, metrics, coverage, and source metadata.
-- Add a monthly summary endpoint using the same selection functions and cutoff, plus a CSV download for the selected day's analysis. Keep the CSV consistent with the displayed results.
-- Validate inputs and clearly distinguish an invalid request, unavailable data, and a server failure.
-- Read the packaged snapshot locally; do not call Elexon on every dashboard request. Avoid extra repositories, service layers, or caching infrastructure unless an actual need appears.
+## 6. Vercel deployment
 
-**Done when:** representative API requests return results consistent with Step 3, invalid inputs are rejected, and the exported CSV agrees with the response.
+I deployed the frontend and FastAPI backend as separate Vercel projects. The backend uses the repository root to include the existing snapshot. The frontend serves `build/client` and forwards `/api` through its static `vercel.json` configuration.
 
-Verified: 97 tests passed; direct and Vite-proxied live HTTP checks passed for readiness, daily JSON/CSV at two cutoffs, monthly summary, validation errors, and unknown API paths. JSON/CSV agree, real results match Step 3, and the snapshot checksum is unchanged. Invalid requests return `422`, snapshot failures `503`, and unexpected bugs `500`. Dashboard workflows, Docker, and deployment remain for later steps.
+I replaced the dynamic frontend configuration after a deployment reported a missing rewrite destination. The explicit destination is now `https://renittask.vercel.app/api/:path*`, and the dashboard works with this setup.
 
-## Step 5 - Build the dashboard and connect real data
+The backend health endpoint returned `200` with snapshot readiness. The Python suite passed on Python 3.12.14 and the existing Python 3.11 environment; the root ASGI entrypoint, frontend type/build checks, and two deployment configuration tests also passed. Local tests do not substitute for hosted browser acceptance. See [the deployment notes](11-vercel-deployment.md).
 
-**Status: complete (25 October 2026).** See [the dashboard reference](10-dashboard.md) for workflows, loading/cancellation, source details, browser checks, and current official references. All calculations remain in Python.
+## 7. Documentation and submission
 
-- Replace the welcome screen with a single dashboard using the existing styling setup and Recharts.
-- Add the January decision-date picker and cutoff control. Display the resulting delivery date and timezone clearly.
-- In **Decision view**, show the selected forecast curve and its coverage. Hide actuals and outcome-derived metrics until the user explicitly reveals them or switches to Accuracy view.
-- In **Accuracy view**, show forecast versus actual generation, MAE, bias, RMSE, matched coverage, and the largest overforecast periods. Label units as MW and explain the error sign.
-- Include a compact retrospective monthly summary using the chosen cutoff; avoid adding a separate analytics section with more filters.
-- Show forecast publication times in tooltips, leave chart gaps visible, and explain missing or unavailable values. Add the CSV download and source/extraction details.
-- Handle loading, failed requests, and empty results honestly. Check that changing controls updates all displayed results consistently, including when requests finish out of order.
-- Check a desktop and a narrow mobile screen. Keep labels readable and controls usable; avoid adding a component framework for this small page.
+I keep the source evidence, analysis rules, API contracts, deployment settings, limitations, and AI-assistance disclosure in this repository.
 
-**Done when:** both workflows use real API data, changing the cutoff changes forecast selection correctly, and the decision screen does not reveal outcomes prematurely.
+The remaining submission artifacts need their own completion check:
 
-Verified locally: frontend type checking and production SPA build passed, 97 Python tests passed, and six Chrome browser checks passed. Real-data checks exercised explicit outcome reveal, Accuracy view, publication tooltips/table, all 24 JSON/CSV numeric rows, default/midnight cutoff coverage, the January/February boundary, and desktop/390px/320px layouts. Intercepted scenarios checked obsolete requests, retry with independent monthly failure, an interior gap, zero values, and unavailable metrics. Desktop and narrow screenshots were inspected. Backend code and the snapshot are unchanged; Docker, public deployment, other browser engines, and a screen-reader audit remain unverified. Step 6 has not started.
+- Public repository access and the required anonymous repository name.
+- The frontend demo URL and unlisted video link in the README.
+- A video with a customer overview of at most 5 minutes and a technical overview of at most 5 minutes, within 10 minutes total.
+- Incognito checks for the submitted links and confirmation through the supplied submission form.
+- Resolution of the original brief's Docker deliverable. The starter frontend Dockerfile is not used by Vercel and has not been validated as a working project image.
 
-## Step 6 - Prepare, verify, and deploy on Vercel
-
-**Status: Vercel configuration and owner deployment guide prepared (25 October 2026). Hosted deployment and acceptance remain with the user.** This replaces the planned Heroku/single-image deployment at the user's request. See [the deployment guide](11-vercel-deployment.md).
-
-- Deploy the backend as a Vercel FastAPI project from the repository root. Export the existing app, use a supported Python version, install runtime dependencies only, and retain the bundled read-only snapshot.
-- Deploy the frontend from `frontend/` as a static Vite project using `build/client`. Set its backend Production origin and forward `/api` without changing the browser API contract or swallowing API failures.
-- Check Python compatibility, focused tests, frontend type/build checks, an explicit rewrite destination, and proxy configuration locally.
-- The user creates/deploys the projects and verifies readiness, daily/monthly API, JSON errors, static assets, bookmarked selections, dashboard workflows, and CSV from public Production URLs.
-- Keep deployment claims explicit: local configuration checks do not establish Vercel's function bundle or hosted behavior. The brief's separate Docker requirement remains unverified; the unused starter Dockerfile is not a Vercel deployment path.
-
-**Done when:** the user has deployed both projects and verified the public dashboard against the packaged snapshot. Configuration readiness alone does not complete hosted deployment.
-
-Verified locally: 97 backend tests passed on Python 3.12.14 and the existing Python 3.11 environment; the root deployment entrypoint passed API/snapshot/CSV/error smoke checks. Frontend type checking, production build, and two deployment configuration tests passed. The snapshot is unchanged. No Vercel project was created, linked, or deployed; hosted routing, bundling, and public acceptance remain pending with the user.
-
-## Step 7 - Document, demonstrate, and submit
-
-- Write a root README covering the problem, folder layout, prerequisites, local startup, snapshot generation, tests, Vercel deployment, Docker deliverable status, deployed URL, assumptions, data provenance, limitations, and AI assistance used.
-- Update the existing approach and tradeoff docs to match the completed implementation. Keep deferred features in the advanced and future-scope documents.
-- Publish the code in a public GitHub repository with an anonymous name. Check tracked files for credentials and personal details that do not belong in the submission.
-- Record an unlisted YouTube demo: up to 5 minutes for the client and up to 5 minutes for the technical reviewer, no more than 10 minutes total. Show the buying-decision workflow first, then explain selection, metrics, data limitations, and startup/deployment.
-- Check the repository, deployment, and video links in incognito mode.
-- Obtain the actual submission-form URL from the assignment owner and submit the links. The supplied docs contain neither that URL nor a submission deadline; do not invent them.
-
-**Done when:** the required artifacts are accessible, the documentation describes what actually works, and the links have been submitted through the supplied form.
-
-## Completion checklist
-
-- [ ] Only the two allowed national wind datasets are used.
-- [ ] Forecasts after each decision cutoff cannot enter the selected forecast curve.
-- [ ] Missing intervals remain visible and metrics show matched coverage.
-- [ ] Decision and Accuracy views work with the historical snapshot.
-- [ ] Focused tests, frontend checks, and hosted Vercel acceptance pass; the original brief's Docker deliverable is resolved separately.
-- [ ] The public app, anonymous repository, README, and unlisted demo are accessible.
-- [ ] Submission links are checked and submitted; remaining limitations are documented.
-- [ ] Advanced features remain deferred rather than expanding the pilot.
+I have not recorded a submission-form URL, submission confirmation, or completed Docker check here. Advanced work remains in [the advanced approach](03-advanced-approach.md) and [future scope](05-future-scope.md).

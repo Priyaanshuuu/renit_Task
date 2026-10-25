@@ -1,6 +1,6 @@
-# Decision selection and calculations: Step 3
+# My selection and calculation rules
 
-Implemented and checked on 24 October 2026. These are Python functions over the prepared snapshot. HTTP analysis endpoints and dashboard integration remain in Steps 4-5.
+I implemented and checked these Python calculations on 24 October 2026. They operate on the prepared snapshot and are shared by the [API](09-api-reference.md) and [dashboard](10-dashboard.md).
 
 ## Code and inputs
 
@@ -8,7 +8,7 @@ Implemented and checked on 24 October 2026. These are Python functions over the 
 - [`backend/app/storage.py`](../backend/app/storage.py): reads the small SQLite snapshot with `mode=ro`, loads native records and embedded source metadata, and closes the connection before returning. A missing path fails without creating an empty database. Unsupported schema versions fail explicitly.
 - [`backend/tests/test_analysis.py`](../backend/tests/test_analysis.py): synthetic boundary tests and offline checks against the bundled snapshot.
 
-`analyze_day(decision_date, actuals, forecasts, cutoff_time=...)` accepts January 2026 decision dates and a local minute-precision `datetime.time`, defaulting to `09:00`. The cutoff is interpreted in `Europe/London` and converted to UTC. Offset-bearing times and nonzero seconds/microseconds are rejected. Exact URL string-format validation belongs to Step 4.
+`analyze_day(decision_date, actuals, forecasts, cutoff_time=...)` accepts January 2026 decision dates and a local minute-precision `datetime.time`, defaulting to `09:00`. The cutoff is interpreted in `Europe/London` and converted to UTC. Offset-bearing times and nonzero seconds/microseconds are rejected. Exact URL string-format validation is defined in the API query models.
 
 The next local calendar day defines the delivery range, from its midnight inclusive to the following midnight exclusive. January 31 therefore maps to February 1, with February 2 midnight excluded. The expected comparison grid is derived from these bounds; it has 24 hours in the supported January scope.
 
@@ -25,7 +25,7 @@ The hourly alignment is the explicit pilot assumption recorded in [the snapshot 
 
 ## Results and coverage
 
-Every daily result contains all 24 delivery hours in chronological order, including gaps. Each interval contains start/end, selected forecast and publication time, hourly actual, the two native actual publication times, and error. Unavailable values are Python `None`; API serialization to JSON `null` belongs to Step 4.
+Every daily result contains all 24 delivery hours in chronological order, including gaps. Each interval contains start/end, selected forecast and publication time, hourly actual, the two native actual publication times, and error. Unavailable values are Python `None`, serialized as JSON `null` by the API.
 
 Coverage reports separate counts:
 
@@ -38,7 +38,7 @@ Coverage reports separate counts:
 | `expected_actual_half_hours` | Native actual periods expected |
 | `available_actual_half_hours` | Distinct native actual periods available after revision selection |
 
-The functions return typed dataclasses, keeping the calculations independent of future Pydantic HTTP schemas. They consume the validated native `GenerationRecord` format prepared in Step 2. Calculations use Python's standard date/time and math tools; no additional dependencies were added.
+I return typed dataclasses to keep calculations independent of the Pydantic HTTP boundary. They consume the validated native `GenerationRecord` format from snapshot preparation. My calculations use Python's standard date/time and math tools.
 
 ## Metrics and monthly aggregation
 
@@ -69,7 +69,7 @@ The reader defaults to the bundled `data/wind_snapshot.sqlite`, resolving its pa
 
 ## Real-data trace and validation
 
-An independent local check used SQL queries and `Decimal` arithmetic to trace all 24 hours for the 15 January decision. It checked the selected eligible revision, both native actuals, hourly mean, errors, and all three daily metrics. The snapshot's SHA-256 was unchanged after analysis.
+I cross-checked all 24 hours for the 15 January decision using independent SQL queries and `Decimal` arithmetic. It checked the selected eligible revision, both native actuals, hourly mean, errors, and all three daily metrics. The snapshot's SHA-256 was unchanged after analysis.
 
 Example first delivery hour:
 
@@ -96,4 +96,4 @@ Both runs have all 1,488 native actual half-hours and 744 complete actual hours.
 
 The largest positive hourly error in the default 09:00 run is **6,870 MW**, for 12 January 01:00-02:00 delivery. This describes a national wind overforecast, not a quantified client purchase shortfall or financial loss.
 
-Verification: **50 tests passed** across snapshot preparation and analysis. Coverage includes exact-cutoff/fractional-second boundaries, latest revisions, duplicates, missing pairs, zero values, signed/hand-calculated metrics, unequal daily coverage in monthly aggregation, month-boundary mapping, read-only storage, and both real monthly cutoff runs. The independent SQL/Decimal trace also passed. No analysis HTTP endpoint, browser workflow, Docker, or deployed-app acceptance was verified in Step 3.
+At the analysis stage, **50 tests passed** across snapshot preparation and analysis. Coverage includes exact-cutoff/fractional-second boundaries, latest revisions, duplicates, missing pairs, zero values, signed/hand-calculated metrics, unequal daily coverage in monthly aggregation, month-boundary mapping, read-only storage, and both real monthly cutoff runs. The independent SQL/Decimal trace also passed. API and browser checks are recorded separately in their references. These calculation checks alone do not establish Docker or hosted-app acceptance.

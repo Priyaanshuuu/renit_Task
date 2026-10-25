@@ -1,70 +1,50 @@
-# Approach and stack
+# My approach and stack
 
-Status: the snapshot, calculations, analysis API, and connected dashboard are implemented (Steps 1-5). Separate Vercel frontend/backend configurations are prepared; the user will deploy them. See [the dashboard reference](10-dashboard.md) and [deployment guide](11-vercel-deployment.md).
+I chose a small architecture around one historical snapshot and two dashboard workflows. The snapshot, calculations, API, and dashboard are implemented, and I deployed the frontend and backend on Vercel. [The dashboard reference](10-dashboard.md) and [deployment notes](11-vercel-deployment.md) describe the current setup.
 
-Use [the engineering conventions](06-engineering-conventions.md) for implementation details such as naming, API contracts, errors, and testing. Keep the architecture below small; clear code and reliable behavior do not require additional services or layers. Follow [the project steps](steps.md) only when the user authorizes the relevant implementation work.
+## Dashboard workflows
 
-## Simple approach
-
-Build one dashboard with two views:
-
-- **Decision view:** choose a January decision date and cutoff, then see the next day's wind forecast available at that time.
-- **Accuracy view:** compare those selected forecasts with actual generation and show the errors.
+- **Decision view:** a January decision date and cutoff select the forecast published by that time for next-day delivery. Outcomes stay hidden until reveal.
+- **Accuracy view:** the same selected forecast is compared with actual generation, with matched coverage and error metrics.
 
 ## Data flow
 
-1. A Python script downloads the required historical Elexon data, including forecast revisions.
-2. Validate timestamps, units, interval lengths, duplicates, and missing records.
-3. Store the cleaned records in a small SQLite snapshot. Keep source details and the extraction timestamp.
-4. For each delivery period, select the latest forecast with `publishTime <= decision cutoff`.
-5. Match that forecast with actual generation for the same delivery interval.
-6. FastAPI returns the selected data and metrics to React.
+1. My preparation script downloads the permitted Elexon data and retains forecast revisions.
+2. It validates timestamps, units, delivery grids, duplicates, and missing records.
+3. It writes a SQLite snapshot with source provenance and coverage.
+4. The analysis selects the latest forecast with `published_at <= decision cutoff` for each delivery hour.
+5. It compares the forecast with the mean of the two actual half-hours, requiring both.
+6. FastAPI returns the results to React and uses the same daily analysis for CSV.
 
-Do not assume API date filters refer to delivery time: verify their meaning with real responses. Fetch enough publication history to cover eligible forecasts. If interval lengths differ, verify and document how they are aligned before calculating errors.
+I checked real responses to distinguish publication filtering from delivery filtering. I preserve the native half-hour actuals and hourly forecast revisions. Treating a forecast's hour label as the following hour remains an explicit comparison assumption. See [the source evidence](07-data-snapshot.md) and [calculation rules](08-analysis-calculations.md).
 
-Step 2 verified publication-time filtering, half-hour FUELHH actual averages in MW, and hourly WINDFOR forecast labels. The snapshot preserves both native resolutions. The pilot will compare each hourly forecast with the mean of its two actual half-hours, requiring both; interpreting the forecast label as the following hour remains an explicit assumption. See [the source evidence and coverage report](07-data-snapshot.md).
+## Stack choices
 
-Step 3 implements that comparison and decision-time revision selection, with Python dataclasses for daily/monthly results. Monthly metrics pool matched hourly errors. See [the analysis reference and real-data trace](08-analysis-calculations.md). Step 4 exposes these results as validated daily JSON, compact monthly summaries, and CSV; see [the API reference](09-api-reference.md).
-
-## Stack and why
-
-| Tool | Why it fits |
+| Tool | Why I chose it |
 | --- | --- |
-| React + TypeScript + Vite | A straightforward frontend with useful type checking. |
-| Recharts | Readable charts without building chart components from scratch. |
-| Python + FastAPI | Small API, input validation, and generated API documentation. |
-| pandas | Available for tabular inspection; the bounded snapshot and current analysis use standard-library functions. |
-| SQLite | Enough for a small historical dataset; no database server to manage. |
-| pytest | Test the forecast selection and calculations that matter most. |
-| Vercel (two projects) | Serve the static frontend and Python API separately, with a frontend `/api` proxy. |
+| React + TypeScript + Vite | A small frontend with strict type checking and an existing SPA setup |
+| Recharts | Chart presentation, publication tooltips, and explicit null gaps |
+| Python + FastAPI | Typed API contracts, validation, and generated API documentation |
+| Python standard library | The bounded analysis fits ordinary date/time, math, and SQLite functions |
+| pandas | Available in the development environment for tabular inspection; not required by API requests |
+| SQLite | A portable historical snapshot without a database server |
+| pytest + Playwright | Focused calculation/API tests and browser workflow checks |
+| Vercel, two projects | Static frontend hosting and a separate Python API, connected by a frontend rewrite |
 
-Vercel serves the compiled React files from the frontend project. The backend project uses the repository root and bundles the read-only snapshot at its existing path. The frontend's static `vercel.json` forwards `/api` to `https://renittask.vercel.app/api`. Do not depend on persistent runtime writes. This replaces the original Heroku/single-image deployment plan at the user's request; the brief's Docker deliverable is recorded separately in the deployment guide.
+The backend bundles the read-only snapshot from the repository root. The frontend's static `vercel.json` forwards `/api` to `https://renittask.vercel.app/api`. I do not rely on persistent runtime writes. The original brief's Docker deliverable is separate from this hosting choice; its status is recorded in [the deployment notes](11-vercel-deployment.md).
 
-## What the dashboard shows
+## Results shown in the portal
 
-- Forecast and actual generation charts, with MW clearly labelled.
-- Forecast publication times in tooltips.
-- Hourly comparison coverage, such as 23 of 24 periods, alongside native actual coverage such as 46 of 48 half-hours.
-- MAE, bias, and RMSE, with short explanations.
-- Largest overforecast periods and a CSV download.
-- Actuals hidden in the decision view until the user reveals them.
+I show forecast publication times, hourly forecast/actual curves in MW, native and matched coverage, MAE, bias, RMSE, largest positive errors, CSV export, and source limitations. The monthly summary stays explicitly retrospective and appears only after outcomes are revealed.
 
-## Metric definitions
+For matched periods, `error = forecast - actual`:
 
-For matched periods, define `error = forecast - actual`.
+- **MAE:** average absolute error in MW.
+- **Bias:** average signed error; positive means overforecast.
+- **RMSE:** square root of mean squared error, giving larger misses more weight.
 
-- **MAE:** average absolute error; typical miss in MW.
-- **Bias:** average signed error; positive means wind was overforecast.
-- **RMSE:** square root of average squared error; gives large misses more weight.
+I exclude unmatched periods and show the sample count. Missing values stay null, and metrics are unavailable with no matched pairs. Monthly metrics pool matched hourly errors instead of averaging daily metrics.
 
-Exclude unmatched periods and show the number of matched samples. Missing is not zero. If converting average power to energy, multiply MW by the interval duration in hours.
+## Engineering boundaries
 
-## Important checks
-
-- Forecasts published after the cutoff are excluded.
-- The latest eligible forecast is selected, with a documented rule for duplicate records.
-- Missing data remains visible and is excluded from metrics.
-- Hand-calculated sample metrics match the code.
-- January decision dates map to the correct next-day delivery dates.
-
-Keep monthly analysis labelled retrospective. Do not use future outcomes as information available during an earlier buying decision.
+I keep selection and metrics in one Python implementation, use typed HTTP contracts, and make resource ownership and errors explicit. My checks cover cutoff boundaries, revision selection, missing pairs, calculations, CSV agreement, and next-day mapping. I keep additional infrastructure in [future scope](05-future-scope.md) until there is a concrete need for it. The detailed conventions are in [the engineering reference](06-engineering-conventions.md).

@@ -1,38 +1,33 @@
 # Problem statement
 
-## What the client needs
+I built this pilot for a day-ahead electricity buying workflow. The client is a UK energy utility that needs to review wind forecasts when planning purchases for the following day.
 
-A UK energy utility buys electricity one day before it is delivered. Wind generation depends on the weather, so the buying team must use forecasts when planning purchases.
+The portal answers two questions:
 
-The app should answer two questions:
+1. What wind forecast had been published when the buying decision was made?
+2. How close was that forecast to actual generation for the delivery day?
 
-1. What wind forecast was available when the buying decision was made?
-2. How close was that forecast to the actual wind generation?
+## Data scope
 
-## Data allowed
+I use only the two Elexon datasets allowed by the brief:
 
-Use only these Elexon datasets at national level:
+- [FUELHH actual generation](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream): records with `fuelType = WIND`, using `startTime` and `generation`.
+- [WINDFOR forecasts](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream): forecast revisions using `startTime`, `publishTime`, and `generation`.
 
-- [FUELHH actual generation](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream): keep records where `fuelType` is `WIND`. Use `startTime` and `generation`.
-- [WINDFOR forecasts](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream): use `startTime`, `publishTime`, and `generation`.
-
-`startTime` is the delivery period. `publishTime` tells us when a forecast was created. Several forecasts can exist for the same delivery period.
+`startTime` identifies delivery, while `publishTime` identifies a publication. I preserve multiple publications for the same delivery period so the analysis can reconstruct different decision cutoffs.
 
 ## Scope and assumptions
 
-- Cover purchase decisions made in January 2026.
-- Interpret this as decision dates 1–31 January and next-day delivery dates 2 January–1 February. Document this assumption.
-- Let the user choose a decision cutoff. A 09:00 Europe/London default is an illustrative assumption, not a confirmed market deadline.
-- Display the Elexon data's Great Britain coverage accurately.
-- This is a forecast analysis dashboard, not a chatbot or a new forecasting model.
-- Without customer demand and contract data, it cannot calculate the client's exact purchase requirement.
+- I interpret January 2026 buying decisions as decision dates 1-31 January, with next-day delivery on 2 January-1 February.
+- I use a configurable cutoff with a 09:00 Europe/London default. This is an illustrative assumption; the client's actual deadline still needs confirmation.
+- I label the data as Great Britain national operationally metered wind.
+- I evaluate published forecasts rather than train a new prediction model.
+- Customer demand and contract data would be needed to calculate the client's exact purchase requirement.
 
-## Required delivery
+## Deliverables from the brief
 
-- React frontend, Python backend, and Docker.
-- Sample app deployed on Vercel or Heroku.
-- Public GitHub repository with an anonymous name.
-- README explaining files, startup steps, deployed URL, and AI assistance used.
-- Unlisted YouTube demo: up to 5 minutes for the client and up to 5 minutes for the technical reviewer; 10 minutes total maximum.
-- Submit the links through the supplied form and check access in incognito mode.
-- Spend no more than 16 hours. The provided brief does not specify a submission deadline or provide the actual submission-form URL.
+The brief asks for a React frontend, Python backend, Docker deliverable, a sample app on Vercel or Heroku, and a public GitHub repository with an anonymous name. The README must explain startup, files, deployed links, and AI assistance.
+
+The unlisted YouTube video must contain a customer overview of at most 5 minutes and a technical-review overview of at most 5 minutes, with a 10-minute total limit. The repository, deployment, and video links must be accessible in incognito mode and submitted through the supplied form.
+
+I used the 16-hour limit to keep the pilot focused. The supplied brief does not state a submission deadline or include the submission-form URL. My current progress and remaining deliverables are recorded in [the project steps](steps.md).

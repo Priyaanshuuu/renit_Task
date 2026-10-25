@@ -1,6 +1,6 @@
-# Analysis API: Step 4
+# My analysis API
 
-Implemented and checked on 25 October 2026. FastAPI exposes the existing [Step 3 calculations](08-analysis-calculations.md) over the bundled read-only snapshot. Dashboard integration remains in Step 5.
+I implemented and checked the API on 25 October 2026. FastAPI exposes my [analysis functions](08-analysis-calculations.md) over the bundled read-only snapshot and supplies the [dashboard](10-dashboard.md).
 
 Start both development servers using [the root README](../README.md). The API is available directly at `http://127.0.0.1:8000`, and `/api` requests through Vite at `http://127.0.0.1:5173` are proxied to it. Interactive documentation is at `http://127.0.0.1:8000/docs`; the generated contract is `/openapi.json` on the backend.
 
@@ -44,13 +44,13 @@ Units are MW. Timestamps include UTC `Z`. Missing values are JSON `null`; zero i
 
 Monthly responses contain `decision_month`, `cutoff_time`, `decision_timezone`, `retrospective: true`, aggregate `coverage`, pooled `metrics`, monthly `largest_overforecasts`, and `source`. `daily_results` has 31 entries with decision/delivery dates, effective cutoff, coverage, and metrics. It omits each day's interval array to keep the summary compact. Each daily decision still uses its own cutoff; monthly metrics do not average daily metrics.
 
-The API returns actuals and outcome-derived metrics. Decision view will hide them until reveal in Step 5; this is a UI workflow, not an access-control boundary.
+The API returns actuals and outcome-derived metrics. I hide them in Decision view until reveal; this is a UI workflow, not an access-control boundary.
 
 ## Source details and assumptions
 
 `source` includes provider, attribution, snapshot `built_at`, earliest/latest recorded retrieval timestamps, delivery bounds, MW units, comparison interval, publication extraction windows for both datasets, the alignment rule, and limitations. Delivery end is exclusive; publication extraction end is inclusive. The earliest/latest retrieval timestamps summarize the recorded requests, not continuous monitoring or a live freshness guarantee. Raw response arrays, all 66 request URLs, and local filesystem paths are not returned.
 
-The data remains the snapshot from Step 2. Actual corrections published after the extraction window are not guaranteed. Hourly comparison treats each WINDFOR label as the following hour and requires both actual half-hours. See [the source reference](07-data-snapshot.md) for evidence and limitations.
+The API reads my prepared historical snapshot. Actual corrections published after the extraction window are not guaranteed. Hourly comparison treats each WINDFOR label as the following hour and requires both actual half-hours. See [the source reference](07-data-snapshot.md) for evidence and limitations.
 
 ## CSV contract
 
@@ -74,7 +74,7 @@ Validation completes before snapshot loading for the analysis routes. A bad quer
 
 Health now checks snapshot readiness as well as API response availability. It reads the supported schema, native record types/grids/timestamps, and required provenance. It does not promise complete coverage, new source data, or authenticated production acceptance. A readable snapshot can contain missing observations. There is no startup download, scheduler, or request-time call to Elexon.
 
-Unexpected `500` responses may be plain text from the framework. Step 5's client must handle validation lists, ordinary error strings, and a generic fallback for non-JSON responses.
+Unexpected `500` responses may be plain text from the framework. My frontend maps failed statuses to safe messages and has a generic fallback for non-JSON responses.
 
 ## Configuration and code ownership
 
@@ -86,12 +86,12 @@ $env:WIND_SNAPSHOT_PATH = "data/wind_snapshot.sqlite"
 
 `routes.py` owns HTTP handlers, safe error translation, provenance summarization, and CSV formatting. `schemas.py` owns input/response contracts and reuses the existing typed calculation dataclasses for nested results. `storage.py` owns read-only SQLite connections and validation of native records. `analysis.py` remains independent of FastAPI. Routes performing local reads/calculations use synchronous `def` so FastAPI runs them outside its async event loop.
 
-The API loads this bounded snapshot per request and closes each SQLite connection before calculating results. It adds no database server, shared connection pool, cache service, settings package, or dependency upgrades. Query/response patterns follow official [FastAPI query models](https://fastapi.tiangolo.com/tutorial/query-param-models/), [response models](https://fastapi.tiangolo.com/tutorial/response-model/), and [Pydantic dataclass support](https://docs.pydantic.dev/latest/concepts/dataclasses/).
+I load the bounded snapshot per request and close each SQLite connection before calculating results. I kept database servers, shared pools, cache services, and additional settings packages outside this implementation. Query/response patterns follow official [FastAPI query models](https://fastapi.tiangolo.com/tutorial/query-param-models/), [response models](https://fastapi.tiangolo.com/tutorial/response-model/), and [Pydantic dataclass support](https://docs.pydantic.dev/latest/concepts/dataclasses/).
 
 ## Verification
 
 **97 tests passed** across snapshot preparation, calculation, storage, and API behavior. API checks cover strict inputs, default and changed cutoffs, exact-cutoff selection, null gaps/zeros, compact monthly output, JSON/CSV agreement, safe `503`, readiness, invalid-query precedence, environment configuration, unknown routes, unexpected `500`, finite results, and OpenAPI content types.
 
-Live local HTTP checks passed directly against Uvicorn and through Vite: readiness, daily JSON/CSV at 09:00 and midnight, retrospective monthly output, `422`, and `404`. The real daily result matches Step 3: 15 January has MAE 782.75 MW and first-hour error +62.5 MW. Midnight monthly analysis has 682 matched hours. The snapshot checksum remained unchanged.
+Live local HTTP checks passed directly against Uvicorn and through Vite: readiness, daily JSON/CSV at 09:00 and midnight, retrospective monthly output, `422`, and `404`. The real daily result matches the calculation reference: 15 January has MAE 782.75 MW and first-hour error +62.5 MW. Midnight monthly analysis has 682 matched hours. The snapshot checksum remained unchanged.
 
-The pinned Starlette version emits one deprecation warning about HTTPX use in `TestClient`. Tests work with the installed dependencies; no dependency migration was performed as part of this step. Browser dashboard workflows, Docker, and deployed-app acceptance remain unverified.
+The installed Starlette version emits a deprecation warning about HTTPX use in `TestClient`; the tests pass with the current dependencies. I record browser workflow checks in [the dashboard reference](10-dashboard.md) and deployment evidence in [the deployment notes](11-vercel-deployment.md). Docker remains unverified.
