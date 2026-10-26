@@ -1,6 +1,6 @@
 # Wind forecast analysis
 
-I built this pilot to compare the Great Britain national wind forecast available at a buying decision with actual next-day generation. It includes a prepared snapshot, Python analysis, an API, and a dashboard with Decision and Accuracy views. I deployed the frontend and backend as separate Vercel projects.
+I built this pilot to compare the Great Britain national wind forecast available at a buying decision with actual next-day generation. It includes a prepared snapshot, Python analysis, an API, and a dashboard with Decision and Accuracy views. I deployed the frontend and backend as separate Vercel projects
 
 ## Scope
 
